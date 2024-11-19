@@ -8,17 +8,13 @@ var db = require('./database/db-connector')
 /*
     ROUTES
 */
-app.get('/', function(req, res)                 // This is the basic syntax for what is called a 'route'
-    {
-        res.send("The server is running!")      // This function literally sends the string "The server is running!" to the computer
-    });                                         // requesting the web site.
 
 app.get('/', function(req, res)
 {
     // Define our queries
     query1 = 'DROP TABLE IF EXISTS diagnostic;';
     query2 = 'CREATE TABLE diagnostic(id INT PRIMARY KEY AUTO_INCREMENT, text VARCHAR(255) NOT NULL);';
-    query3 = 'INSERT INTO diagnostic (text) VALUES ("MySQL is working for ONIDhere!")'; //replace with your onid
+    query3 = 'INSERT INTO diagnostic (text) VALUES ("MySQL is working for lorr!")'; //replace with your onid
     query4 = 'SELECT * FROM diagnostic;';
 
     // Execute every query in an asynchronous manner, we want each query to finish before the next one starts
