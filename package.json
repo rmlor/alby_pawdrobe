@@ -1,0 +1,30 @@
+{
+  "name": "alby_pawdrobe",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rmlor/alby_pawdrobe.git"
+  },
+  "keywords": [
+    "alby",
+    "wardrobe",
+    "dogs",
+    "clothes"
+  ],
+  "author": "Ruth Lor & Nhu Dang",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rmlor/alby_pawdrobe/issues"
+  },
+  "homepage": "https://github.com/rmlor/alby_pawdrobe#readme",
+  "dependencies": {
+    "express": "^4.21.1",
+    "forever": "^4.0.3",
+    "mysql": "^2.18.1"
+  }
+}
