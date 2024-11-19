@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Orders</title>
+    <!-- (POP) Style: refer to https://www.w3schools.com/howto/howto_css_modals.asp -->
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.4); 
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; 
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="customers.html">Customer Profiles</a>
+        <a href="dogs.html">Pup Profiles</a>
+        <a href="addresses.html">Address Directory</a>
+        <a href="breeds.html">Breed Library</a>
+        <a href="products.html">Product Catalog</a>
+        <a href="orders.html">Order Tracker</a>
+    </nav>
+    <!-- View Orders-->
+    <h2>Order Tracker</h2>
+    <p>Track order information, product customizations, and shipping details, fulfilling high-quality promises</p>
+    <h3>Turning ideas into delivered dreams</h3>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Dog ID</th>
+                <th>Address ID</th>
+                <th>Order Date</th>
+                <th>Gift Note</th>
+                <th>Custom Request</th>
+                <th>Status</th>
+                <th>Shipped Date</th>
+                <th>Delivered Date</th>
+                <th>Product Actions</th>
+                <th>Order Actions</th>
+            </tr>
+        </thead>
+        <!-- Sample Order Data -->
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>1</td>
+                <td>2024-10-01</td>
+                <td>Happy Birthday Alby</td>
+                <td>Gift Wrap</td>
+                <td>Shipped</td>
+                <td>2024-10-05</td>
+                <td>2024-10-06</td>
+                <td>
+                    <button onclick="openProductModal(this)">View</button>
+                </td>
+                <td>
+                    <button onclick="openOrderModal('edit', this)">Edit</button>
+                    <button onclick="openDeleteModal(this)">Delete</button> 
+                </td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>1</td>
+                <td>2024-10-02</td>
+                <td></td>
+                <td>Rush Order</td>
+                <td>Delivered</td>
+                <td>2024-10-03</td>
+                <td>2024-10-04</td>
+                <td>
+                    <button onclick="openProductModal(this)">View</button>
+                </td>
+                <td>
+                    <button onclick="openOrderModal('edit', this)">Edit</button>
+                    <button onclick="openDeleteModal(this)">Delete</button> 
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <!-- (Button) Add Order -->
+    <button onclick="openOrderModal('add')">Add Order</button>
+    <!-- (POP) Add/Edit Order: refer to https://www.w3schools.com/howto/howto_css_modals.asp -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('orderModal')">&times;</span>
+            <h2 id="modalTitle">Add/Edit Order</h2>
+            <form id="orderForm">
+                <input type="hidden" id="orderID">
+                <label for="dogID">Dog ID:</label>        <!-- Dog ID will be a dynamically generated drop down menu -->
+                <select id="dogID" required>
+                    
+                <label for="addressID">Address ID:</label>        <!-- Address ID will be a dynamically generated drop down menu -->
+                <select id="addressID" required>
+                    <!-- Populate dogID options here -->
+                </select><br>
+                <label for="orderDate">Order Date:</label>
+                <input type="date" id="orderDate" required><br>
+                <label for="orderGiftNote">Gift Note:</label>
+                <input type="text" id="orderGiftNote"><br>
+                <label for="orderCustomRequest">Custom Request:</label>
+                <select id="orderCustomRequest">
+                    <option value="">None</option>
+                    <option value="gift_wrap">Gift Wrap</option>
+                    <option value="rush_order">Rush Order</option>
+                    <option value="sustainable_pack">Sustainable Packaging</option>
+                </select><br>
+                <label for="orderStatus">Order Status:</label>
+                <select id="orderStatus" required>
+                    <option value="received">Received</option>
+                    <option value="preparing">Preparing</option>
+                    <option value="packing">Packing</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="delayed">Delayed</option>
+                    <option value="canceled">Canceled</option>
+                    <option value="returned">Returned</option>
+                </select><br>
+                <label for="orderShippedDate">Shipped Date:</label>
+                <input type="date" id="orderShippedDate"><br>
+                <label for="orderDeliveredDate">Delivered Date:</label>
+                <input type="date" id="orderDeliveredDate"><br>
+                <button type="submit">Save Order</button>
+            </form>
+        </div>
+    </div>
+    <!-- (POP) View Products for Specific Order: refer to https://www.w3schools.com/howto/howto_css_modals.asp -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('productModal')">&times;</span>
+            <h2>Product List for Selected Order</h2>
+            <table id="productTable">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Product Name</th>
+                        <th>Custom Request</th>
+                        <th>Sale Price</th>
+                        <th>Product Management</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <!-- (BUTTON) Add Product for Specific Order -->
+            <button onclick="showAddProductForm()">Add Product</button>
+            <!-- (FORM) Add Product for Specific Order -->
+            <div id="addProductForm" class="hidden">
+                <h3>Add Product to Order</h3>
+                <form>
+                    <input type="hidden" id="productOrderID">
+                    <label for="productSelect">Product:</label>
+                    <select id="productSelect">
+                        <option value="1">Comfy Bodysuit</option>
+                        <option value="2">Reversible Puffer Jacket</option>
+                        <option value="3">Classic Tux</option>
+                    </select><br>
+                    <label for="productCustomRequest">Custom Request:</label>
+                    <input type="text" id="productCustomRequest"><br>
+                    <label for="productSalePrice">Sale Price:</label>
+                    <input type="number" id="productSalePrice" step="0.01" min="0" required><br>
+                    <button type="button" onclick="addProductToOrder()">Add Product</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- (POP) Delete Order: refer to https://www.w3schools.com/howto/howto_css_modals.asp -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('deleteModal')">&times;</span>
+            <h2>Confirm Deletion</h2>
+            <p>Are you sure you want to delete this order?</p>
+            <button id="confirmDeleteButton">Yes</button>
+            <button onclick="closeModal('deleteModal')">No</button>
+        </div>
+    </div>
+    <!-- (POP) Scripts: refer to https://www.w3schools.com/howto/howto_css_modals.asp -->
+    <script>
+        let currentRow;
+        const orderProductsData = {}; 
+        const allProducts = [
+            { productID: 1, productName: "Comfy Bodysuit" },
+            { productID: 2, productName: "Reversible Puffer Jacket" },
+            { productID: 3, productName: "Classic Tux" }
+        ];
+    
+        function openOrderModal(mode, button = null) {
+            const modal = document.getElementById('orderModal');
+            const title = document.getElementById('modalTitle');
+            document.getElementById('orderForm').reset();
+    
+            if (mode === 'edit' && button) {
+                const row = button.parentElement.parentElement;
+                title.textContent = 'Edit Order';
+                document.getElementById('orderID').value = row.cells[0].textContent;
+                document.getElementById('dogID').value = row.cells[1].textContent;
+                document.getElementById('orderDate').value = row.cells[2].textContent;
+                document.getElementById('orderGiftNote').value = row.cells[3].textContent;
+                document.getElementById('orderCustomRequest').value = row.cells[4].textContent;
+                document.getElementById('orderStatus').value = row.cells[5].textContent;
+                document.getElementById('orderShippedDate').value = row.cells[6].textContent;
+                document.getElementById('orderDeliveredDate').value = row.cells[7].textContent;
+            } else {
+                title.textContent = 'Add Order';
+            }
+            modal.style.display = 'block';
+        }
+    
+        function openProductModal(button) {
+            const row = button.parentElement.parentElement;
+            const modal = document.getElementById('productModal');
+            const orderID = row.cells[0].textContent;
+            document.getElementById('productOrderID').value = orderID;
+            loadProductsForOrder(orderID);
+            modal.style.display = 'block';
+        }
+    
+        function showAddProductForm() {
+            document.getElementById('addProductForm').classList.remove('hidden');
+        }
+    
+        function loadProductsForOrder(orderID) {
+            const productTableBody = document.getElementById('productTable').querySelector('tbody');
+            productTableBody.innerHTML = '';
+            const products = orderProductsData[orderID] || [];
+            products.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${orderID}</td>
+                    <td><select>${allProducts.map(productOption => `
+                        <option value="${productOption.productID}" ${product.productID === productOption.productID ? 'selected' : ''}>${productOption.productName}</option>
+                    `).join('')}</select></td>
+                    <td><input type="text" value="${product.customRequest || ''}"></td>
+                    <td><input type="number" step="0.01" min="0" value="${product.salePrice || ''}"></td>
+                    <td>
+                        <button onclick="saveProductEdit(${orderID}, ${product.productID})">Save</button>
+                        <button onclick="deleteProduct(${orderID}, ${product.productID})">Delete</button>
+                    </td>
+                `;
+                productTableBody.appendChild(row);
+            });
+        }
+    
+        function addProductToOrder() {
+            const orderID = document.getElementById('productOrderID').value;
+            const productSelect = document.getElementById('productSelect');
+            const selectedProductID = parseInt(productSelect.value);
+            const selectedProductName = productSelect.options[productSelect.selectedIndex].text;
+            const customRequest = document.getElementById('productCustomRequest').value;
+            const salePrice = parseFloat(document.getElementById('productSalePrice').value);
+    
+            if (!orderProductsData[orderID]) {
+                orderProductsData[orderID] = [];
+            }
+            orderProductsData[orderID].push({ productID: selectedProductID, productName: selectedProductName, customRequest, salePrice });
+            loadProductsForOrder(orderID);
+            document.getElementById('addProductForm').classList.add('hidden');
+        }
+    
+        function openDeleteModal(button) {
+            const row = button.parentElement.parentElement;
+            document.getElementById("deleteModal").style.display = "block";
+            document.getElementById("confirmDeleteButton").onclick = function() {
+                confirmDelete(row);
+            };
+        }
+    
+        function confirmDelete(row) {
+            row.remove();
+            closeModal('deleteModal');
+            alert("Order successfully deleted");
+        }
+    
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+            if (modalId === 'productModal') {
+                document.getElementById('addProductForm').classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
