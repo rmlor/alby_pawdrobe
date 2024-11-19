@@ -13,43 +13,74 @@ app.set('view engine', '.hbs');                     // Tell express to use the h
 /*
     ROUTES
 */
-// app.js
-
 app.get('/', function(req, res)
     {
         res.render('index');                        // Note the call to render() and not send(). Using render() ensures the templating engine
     });                                             // will process this file, before sending the finished HTML to the client.
 
-app.get('/Order_Products', function(req, res) {     //Fetch Order_Products
-    // Define queries
-    queryDropOrderProducts = `DROP TABLE IF EXISTS Order_Products;`;
-    queryCreateOrderProducts = `CREATE TABLE Order_Products (
-        orderProductID INT(11) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-        orderID INT(11) UNSIGNED NOT NULL,
-        productID INT(11) UNSIGNED NOT NULL,
-        orderProductRequest VARCHAR(255) NULL,
-        orderProductSalePrice DECIMAL(8, 2) NOT NULL,
-        FOREIGN KEY (orderID) REFERENCES Orders(orderID) ON DELETE RESTRICT,
-        FOREIGN KEY (productID) REFERENCES Products(productID) ON DELETE RESTRICT
-    );`;
-    queryInsertOrderProducts = `INSERT INTO Order_Products (orderID, productID, orderProductRequest, orderProductSalePrice) 
-        VALUES (1, 1, 'Add daisy-themed buttons and lace', 42.50);`; 
-    querySelectOrderProducts = `SELECT Order_Products.*, Products.productName 
-        FROM Order_Products 
-        JOIN Products ON Order_Products.productID = Products.productID`;
+app.get('/products', function(req, res)             //Fetch Products
+    {
+        //Define query
+        let queryProducts = `
+            SELECT productID, productName, productDescription, 
+                productType, productColorBase, productColorStyle, 
+                productLiningMaterial, productFillingMaterial, productBasePrice 
+            FROM Products;
+        `;
 
-    // Execute queries in an asynchronous manner with error logging
-    db.pool.query(queryDropOrderProducts, function (err, results, fields) {
-        db.pool.query(queryCreateOrderProducts, function (err, results, fields) {
-            db.pool.query(queryInsertOrderProducts, function (err, results, fields) {
-                db.pool.query(querySelectOrderProducts, function (err, results, fields) {
-                    // Send results to the browser
-                    res.send(JSON.stringify(results));
-                });
-            });
+        //Execute query
+        db.pool.query(queryProducts, function (error, results, fields) {
+            res.render('products', {data: results});
+        })
+    });
+
+    app.get('/orders', function(req, res)           //Fetch Orders
+    {
+        //Define query
+        let queryOrders = `
+            SELECT orderID, dogID, addressID, orderDate, orderGiftNote, 
+                orderCustomRequest, orderStatus, orderShippedDate, orderDeliveredDate
+            FROM Orders;
+        `;
+    
+        //Execute query
+        db.pool.query(queryOrders, (error, results, fields) => {
+            res.render('orders', {data: results});
         });
     });
-});
+    
+    //Products for a specific order (modal)        //Fetch Products by orderID
+    app.get('/orders/:id/products', function (req, res) 
+    {
+        let orderId = req.params.id;
+    
+        let queryOrderProducts = `
+            SELECT op.orderID, op.productID, p.productName, op.orderProductRequest, op.orderProductSalePrice
+            FROM Order_Products op
+            JOIN Products p ON op.productID = p.productID
+            WHERE op.orderID = ?;
+        `;
+    
+        db.pool.query(queryOrderProducts, [orderId], (error, products, fields) => {
+            res.json(products); 
+        });
+    });
+    
+    //Add a product to an order
+    app.post('/orders/:id/products/add', function(req, res) 
+    {
+        let orderId = req.params.id;
+        let {productID, orderProductRequest, orderProductSalePrice} = req.body;
+    
+        let queryAddProductToOrder = `
+            INSERT INTO Order_Products (orderID, productID, orderProductRequest, orderProductSalePrice)
+            VALUES (?, ?, ?, ?);
+        `;
+    
+        db.pool.query(queryAddProductToOrder, [orderId, productID, orderProductRequest, orderProductSalePrice], (err, results) => {
+            res.redirect(`/orders`);
+        });
+    });
     
 /*
     LISTENER
