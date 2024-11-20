@@ -1,5 +1,5 @@
 {{!-- Create a table --}}
-<table>
+<table id="customer-table">
 
     {{!-- Header section --}}
     <thead>
@@ -29,3 +29,21 @@
         {{/each}}
     </tbody>
 </table>
+
+<h2>Adding Data with AJAX</h2>
+<p>To add a new customer, please enter their information below and click 'Submit'!</p>
+<form id="add-customer-form-ajax">
+    <label for="customerName">Name: </label>
+    <input type="text" name="customerName" id="customerName" required> 
+    
+    <label for="customerEmail">Email: </label>
+    <input type="text" name="customerEmail" id="customerEmail" value="example@example.com" required>
+
+    <label for="customerPhone">Phone Number: </label>
+    <input type="text" name="customerPhone" id="customerPhone" required>
+
+    <input type="submit">
+</form>
+
+{{!-- Embed our javascript to handle the DOM manipulation and AJAX request --}}
+<script src="./js/add_customer.js"></script>

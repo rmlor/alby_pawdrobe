@@ -3,13 +3,10 @@
 */
 
 var express = require('express');                   // We are using the express library for the web server
-
-/*
+var app     = express();                            // We need to instantiate an express object to interact with the server in our code
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(express.static('public'))
-*/
-var app     = express();                            // We need to instantiate an express object to interact with the server in our code
 PORT        = 4189;                                 // Set a port number at the top so it's easy to change in the future
 var db = require('./database/db-connector')         // Connecting to database
 const { engine } = require('express-handlebars');
@@ -18,35 +15,7 @@ app.engine('.hbs', engine({extname: ".hbs"}));      // Create an instance of the
 app.set('view engine', '.hbs');                     // Tell express to use the handlebars engine whenever it encounters a *.hbs file.
 
 /*
-    ROUTES
-    
-        // Define our queries
-    query1 = 'DROP TABLE IF EXISTS diagnostic;';
-    query2 = 'CREATE TABLE diagnostic(id INT PRIMARY KEY AUTO_INCREMENT, text VARCHAR(255) NOT NULL);';
-    query3 = 'INSERT INTO diagnostic (text) VALUES ("MySQL is working for lorr!")'; //replace with your onid
-    query4 = 'SELECT * FROM diagnostic;';
-
-    // Execute every query in an asynchronous manner, we want each query to finish before the next one starts
-
-    // DROP TABLE...
-    db.pool.query(query1, function (err, results, fields){
-
-        // CREATE TABLE...
-        db.pool.query(query2, function(err, results, fields){
-
-            // INSERT INTO...
-            db.pool.query(query3, function(err, results, fields){
-
-                // SELECT *...
-                db.pool.query(query4, function(err, results, fields){
-
-                    // Send the results to the browser
-                    res.send(JSON.stringify(results));
-                });
-            });
-        });
-    });
-});
+ROUTES
 */
 app.get('/', function(req, res)
     {
@@ -104,13 +73,56 @@ app.get('/products', function(req, res)             //Fetch Products
     //Customers page
     app.get('/customers', function(req, res)
     {  
-        let query1 = "SELECT * FROM Customers;";               // Define our query
+        let selectCustomers = "SELECT * FROM Customers;";               // Define our query
 
-        db.pool.query(query1, function(error, rows, fields){    // Execute the query
+        db.pool.query(selectCustomers, function(error, rows, fields){    // Execute the query
 
             res.render('customers', {data: rows});                  // Render the index.hbs file, and also send the renderer
         })                
-    });           
+    });
+    
+    app.post('/add-customer-ajax', function(req, res) 
+    {
+        // Capture the incoming data and parse it back to a JS object
+        let data = req.body;
+
+        console.log("Data being sent to server:", data);
+
+        // Create the query and run it on the database
+        insertCustomers = `INSERT INTO Customers (customerName, customerEmail, customerPhone) VALUES ('${data.customerName}', '${data.customerEmail}', '${data.customerPhone}')`;
+        db.pool.query(insertCustomers, function(error, rows, fields){
+
+            // Check to see if there was an error
+            if (error) {
+
+                // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
+                console.log(error)
+                res.sendStatus(400);
+            }
+            else
+            {
+                // If there was no error, perform a SELECT * on Customers
+                selectCustomers = `SELECT * FROM Customers;`;
+                db.pool.query(selectCustomers, function(error, rows, fields){
+
+                    // If there was an error on the second query, send a 400
+                    if (error) {
+                        
+                        // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
+                        console.log(error);
+                        res.sendStatus(400);
+                    }
+                    // If all went well, send the results of the query back.
+                    else
+                    {
+                        res.send(rows);
+                    }
+                })
+            }
+        })
+    });
+
+    //Customers Page End
 
     //Add a product to an order
     app.post('/orders/:id/products/add', function(req, res) 
