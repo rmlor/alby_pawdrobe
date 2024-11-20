@@ -12,3 +12,4 @@ var pool = mysql.createPool({
 
 // Export it for use in our applicaiton
 module.exports.pool = pool;
+
