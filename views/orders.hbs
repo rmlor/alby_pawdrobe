@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Order Tracker</title>
+</head>
+<body>
+    <h1>Order Tracker - Turning Ideas into Delivered Dreams</h1>
+    <p>Track order information, product customizations, and shipping details, fulfilling high-quality promises</p>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Dog ID</th>
+                <th>Address ID</th>
+                <th>Order Date</th>
+                <th>Gift Note</th>
+                <th>Custom Request</th>
+                <th>Status</th>
+                <th>Shipped Date</th>
+                <th>Delivered Date</th>
+                <th>Product Actions</th>
+                <th>Order Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each data}}
+            <tr>
+                <td>{{this.orderID}}</td>
+                <td>{{this.dogID}}</td>
+                <td>{{this.addressID}}</td>
+                <td>{{this.orderDate}}</td>
+                <td>{{this.orderGiftNote}}</td>
+                <td>{{this.orderCustomRequest}}</td>
+                <td>{{this.orderStatus}}</td>
+                <td>{{this.orderShippedDate}}</td>
+                <td>{{this.orderDeliveredDate}}</td>
+                <td>
+                    <button onclick="viewProducts({{this.orderID}})">View Products</button>
+                </td>
+                <td>
+                    <button>Edit</button>
+                    <button>Delete</button>
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+
+    <script>
+        function viewProducts(orderID) {
+            fetch(`/orders/${orderID}/products`)
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log(data); 
+                });
+        }
+    </script>
+</body>
+</html>
