@@ -44,7 +44,7 @@ app.set('view engine', '.hbs');                     // Tell express to use the h
 */
 app.get('/', function(req, res)
     {
-        res.render('app');                        // Note the call to render() and not send(). Using render() ensures the templating engine
+        res.render('index');                        // Note the call to render() and not send(). Using render() ensures the templating engine
     });                                             // will process this file, before sending the finished HTML to the client.
 
 app.get('/products', function(req, res)             //Fetch Products
