@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Product Catalog</title>
+</head>
+<body>
+    <h1>Product Catalog - Where Couture Meets Catalog</h1>
+    <p>Upkeep an Alby-approved product catalog, ensuring every pup's pawdrobe stays comfy and trendy.</p>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Product ID</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Type</th>
+                <th>Base Color</th>
+                <th>Color Style</th>
+                <th>Lining Material</th>
+                <th>Filling Material</th>
+                <th>Base Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each data}}
+            <tr>
+                <td>{{this.productID}}</td>
+                <td>{{this.productName}}</td>
+                <td>{{this.productDescription}}</td>
+                <td>{{this.productType}}</td>
+                <td>{{this.productColorBase}}</td>
+                <td>{{this.productColorStyle}}</td>
+                <td>{{this.productLiningMaterial}}</td>
+                <td>{{this.productFillingMaterial}}</td>
+                <td>{{this.productBasePrice}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</body>
+</html>
