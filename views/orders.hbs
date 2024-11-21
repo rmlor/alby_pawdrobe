@@ -7,23 +7,21 @@
 <body>
     <h1>Order Tracker - Turning Ideas into Delivered Dreams</h1>
     <p>Track order information, product customizations, and shipping details, fulfilling high-quality promises</p>
-
-    <table border="1">
+    
+    <table id="orders-table" border="1">
+        <!-- Header Section -->
         <thead>
+            {{!-- For just the first row, we print each key of the row object as a header cell so we
+            know what each column means when the page renders --}}
             <tr>
-                <th>Order ID</th>
-                <th>Dog ID</th>
-                <th>Address ID</th>
-                <th>Order Date</th>
-                <th>Gift Note</th>
-                <th>Custom Request</th>
-                <th>Status</th>
-                <th>Shipped Date</th>
-                <th>Delivered Date</th>
-                <th>Product Actions</th>
-                <th>Order Actions</th>
+                {{#each data.[0]}}
+                <th>
+                    {{@key}}
+                </th>
+                {{/each}}
             </tr>
         </thead>
+        <!-- Body Section -->
         <tbody>
             {{#each data}}
             <tr>
@@ -37,15 +35,197 @@
                 <td>{{this.orderShippedDate}}</td>
                 <td>{{this.orderDeliveredDate}}</td>
                 <td>
-                    <button onclick="viewProducts({{this.orderID}})">View Products</button>
+                    <button onclick="openManageProductsModal({{this.orderID}})">Manage</button>
                 </td>
                 <td>
-                    <button>Edit</button>
-                    <button>Delete</button>
+                    <button onclick="openEditOrderModal({{this.orderID}})">Edit</button>
+                    <button onclick="deleteOrder({{this.orderID}})">Delete</button>
                 </td>
             </tr>
             {{/each}}
         </tbody>
     </table>
+
+    <div></div>
+
+    <!-- (FORM) Add New Order -->
+    <h2>Add New Order</h2>
+    <p>Please enter the order information below and click 'Add New Order' to save it!</p>
+    <form id="add-order-form-ajax">
+        <input type="hidden" id="orderID">
+
+        <label for="dogID">Dog ID:</label>                  <!-- Dog ID options will be a dynamically generated drop down menu -->
+        <select id="input-dogID" required>
+            <option value="">Select a Dog</option>
+            {{#each dogs}}
+            <option value="{{this.dogID}}">{{this.dogID}}: {{this.dogName}}</option>
+            {{/each}}
+        </select><br>
+            
+        <label for="addressID">Address ID:</label>          <!-- Address ID options will be a dynamically generated drop down menu -->
+        <select id="input-addressID" required>
+            <option value="">Select an Address</option>
+            {{#each addresses}}
+            <option value="{{this.addressID}}">{{this.addressID}}: {{this.streetAddress}}, {{this.unit}}, {{this.city}}, {{this.state}}, {{this.postalCode}}</option>
+            {{/each}}
+        </select><br>       
+
+        <label for="orderDate">Order Date:</label>
+        <input type="date" id="input-orderDate" required><br>
+
+        <label for="orderGiftNote">Gift Note:</label>
+        <input type="text" id="input-orderGiftNote"><br>
+
+        <label for="orderCustomRequest">Custom Request:</label>
+        <select id="input-orderCustomRequest">
+            <option value="gift_wrap">Gift Wrap</option>
+            <option value="rush_order">Rush Order</option>
+            <option value="sustainable_pack">Sustainable Pack</option>
+        </select><br>
+
+        <label for="orderStatus">Order Status:</label>      <!-- Order Status options will be a dynamically generated drop down menu -->
+        <select id="input-orderStatus" required>
+            <option value="received">Received</option>
+            <option value="preparing">Preparing</option>
+            <option value="packing">Packing</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="delayed">Delayed</option>
+            <option value="canceled">Canceled</option>
+            <option value="returned">Returned</option>
+        </select><br>
+
+        <label for="orderShippedDate">Shipped Date:</label>
+        <input type="date" id="input-orderShippedDate"><br>
+
+        <label for="orderDeliveredDate">Delivered Date:</label>
+        <input type="date" id="input-orderDeliveredDate"><br>
+
+        <button type="submit">Add New Order</button>
+    </form>
+
+    <div></div>
+
+    <!-- (MODAL) UPDATE ORDER FORM: refer to https://www.w3schools.com/howto/howto_css_modals.asp -->
+    <div id="openEditOrderModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid #ccc; padding: 20px; z-index: 1000;">
+        <span class="close" onclick="closeModal('deleteModal')">&times;</span>
+        <h2>Edit Order</h2>
+        <form id="edit-order-form-ajax">
+            <input type="hidden" id="edit-orderID">
+
+            <label for="edit-dogID">Dog ID:</label>
+            <select id="edit-dogID" required>
+                <option value="">Select a Dog</option>
+                {{#each dogs}}
+                <option value="{{this.dogID}}">{{this.dogID}}: {{this.dogName}}</option>
+                {{/each}}
+            </select><br>
+
+            <label for="edit-addressID">Address ID:</label>
+            <select id="edit-addressID" required>
+                <option value="">Select an Address</option>
+                {{#each addresses}}
+                <option value="{{this.addressID}}">{{this.addressID}}: {{this.streetAddress}}, {{this.unit}}, {{this.city}}, {{this.state}}, {{this.postalCode}}</option>
+                {{/each}}
+            </select><br>
+
+            <label for="edit-orderDate">Order Date:</label>
+            <input type="date" id="edit-orderDate" required><br>
+
+            <label for="edit-orderGiftNote">Gift Note:</label>
+            <input type="text" id="edit-orderGiftNote"><br>
+
+            <label for="edit-orderCustomRequest">Custom Request:</label>
+            <select id="edit-orderCustomRequest">
+                <option value="gift_wrap">Gift Wrap</option>
+                <option value="rush_order">Rush Order</option>
+                <option value="sustainable_pack">Sustainable Pack</option>
+            </select><br>
+
+            <label for="edit-orderStatus">Order Status:</label>
+            <select id="edit-orderStatus" required>
+                <option value="received">Received</option>
+                <option value="preparing">Preparing</option>
+                <option value="packing">Packing</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="delayed">Delayed</option>
+                <option value="canceled">Canceled</option>
+                <option value="returned">Returned</option>
+            </select><br>
+
+            <label for="edit-orderShippedDate">Order Shipped Date:</label>
+            <input type="date" id="edit-orderShippedDate" ><br>
+
+            <label for="edit-orderDeliveredDate">Order Delivered Date:</label>
+            <input type="date" id="edit-orderDeliveredDate"><br>
+
+
+            <button type="submit">Save Changes</button>
+            <button type="button" onclick="closeEditOrderModal()">Cancel</button>
+        </form>
+    </div>
+    <div id="modalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999;"></div>
+
+    <!-- (MODAL) DELETE ORDER CONFIRMATION: refer to https://www.w3schools.com/howto/howto_css_modals.asp -->
+    <div id="deleteModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid #ccc; padding: 20px; z-index: 1000;">
+        <span class="close" onclick="closeModal('deleteModal')">&times;</span>
+        <p>Are you sure you want to delete this order?</p>
+        <button id="confirmDelete">Yes</button>
+        <button id="cancelDelete">No</button>
+    </div>
+    <div id="modalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999;"></div>
+
+    <!-- (MODAL) View All Purchased Products for This Order (intersection table) -->
+    <div id="manageProductsModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid #ccc; padding: 20px; z-index: 1000; width: 600px;">
+        <span class="close" onclick="closeModal('deleteModal')">&times;</span>
+        <h2>Manage Purchased Products</h2>
+        <p>Order ID: <span id="manage-orderID"></span></p>
+
+        <!-- View Purchased Products Table -->
+        <table id="purchased-products-table" border="1">
+            <thead>
+                <tr>
+                    <th>Product ID</th>
+                    <th>Product Name</th>
+                    <th>Request</th>
+                    <th>Sale Price</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+
+        <!-- Add Purchased Product Form -->
+        <h3>Add Purchased Product</h3>
+        <form id="add-purchased-product-form-ajax">
+            <label for="productID">Product ID:</label>
+            <select id="input-productID" required>
+                <option value="">Select a Product</option>
+                {{#each products}}
+                <option value="{{this.productID}}">{{this.productName}}</option>
+                {{/each}}
+            </select><br>
+
+            <label for="orderProductRequest">Request:</label>
+            <input type="text" id="input-orderProductRequest"><br>
+
+            <label for="orderProductSalePrice">Sale Price:</label>
+            <input type="number" id="input-orderProductSalePrice" required step="0.01" min="0"><br>
+
+            <button type="submit">Add Product</button>
+        </form>
+
+        <button type="button" onclick="closeManageProductsModal()">Close</button>
+    </div>
+    <div id="modalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999;"></div>
+
+    {{!-- Embed our javascript to handle the DOM manipulation and AJAX request --}}
+    <script src="./js/add_order.js"></script>
+    <script src="./js/update_order.js"></script>
+    <script src="./js/delete_order.js"></script>
+    <script src="./js/manage_order_product.js"></script>
+
 </body>
 </html>
