@@ -50,7 +50,7 @@ CREATE TABLE `Addresses`(
     ON UPDATE CASCADE
 );
 
---define Dogs entity
+-- define Dogs entity
 CREATE TABLE `Dogs`(
     `dogID` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `customerID` INT(11) UNSIGNED DEFAULT NULL,
