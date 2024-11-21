@@ -45,7 +45,9 @@ CREATE TABLE `Addresses`(
     `city` VARCHAR(50) NOT NULL,
     `state` VARCHAR(2) NOT NULL,
     `postalCode` VARCHAR(15) NOT NULL,
-    FOREIGN KEY (`customerID`) REFERENCES `Customers`(`customerID`) ON DELETE RESTRICT
+    FOREIGN KEY (`customerID`) REFERENCES `Customers`(`customerID`) 
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
 );
 
 --define Dogs entity
@@ -60,7 +62,9 @@ CREATE TABLE `Dogs`(
     `heightLengthIn` INT(11) NOT NULL,
     `pawWidthIn` DECIMAL(2,1) NOT NULL,
     `pawLengthIn` DECIMAL(2,1) NOT NULL,
-    FOREIGN KEY (`customerID`) REFERENCES `Customers`(`customerID`) ON DELETE RESTRICT
+    FOREIGN KEY (`customerID`) REFERENCES `Customers`(`customerID`) 
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
 );
 
 -- define Breeds entity
@@ -88,7 +92,9 @@ CREATE TABLE `Dog_Breeds`(
     `dogBreedID` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `dogID` INT(11) NOT NULL,
     `breedID` INT(11) NOT NULL,
-    FOREIGN KEY (`dogID`) REFERENCES `Dogs`(`dogID`) ON DELETE RESTRICT,
+    FOREIGN KEY (`dogID`) REFERENCES `Dogs`(`dogID`) 
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
     FOREIGN KEY (`breedID`) REFERENCES `Breeds`(`breedID`) ON DELETE RESTRICT
 );
 
@@ -158,8 +164,12 @@ CREATE TABLE `Orders`(
     ) NOT NULL,
     `orderShippedDate` DATE DEFAULT NULL,
     `orderDeliveredDate` DATE DEFAULT NULL,
-    FOREIGN KEY (`dogID`) REFERENCES `Dogs`(`dogID`) ON DELETE RESTRICT,
-    FOREIGN KEY (`addressID`) REFERENCES `Addresses`(`addressID`) ON DELETE RESTRICT
+    FOREIGN KEY (`dogID`) REFERENCES `Dogs`(`dogID`) 
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+    FOREIGN KEY (`addressID`) REFERENCES `Addresses`(`addressID`) 
+    ON DELETE RESTRICT
+    on UPDATE CASCADE
 );
 
 -- define Order_Products entity
@@ -169,8 +179,12 @@ CREATE TABLE `Order_Products`(
     `productID` INT(11) NOT NULL,
     `orderProductRequest` VARCHAR(255) NULL,
     `orderProductSalePrice` DECIMAL(8, 2) NOT NULL,
-    FOREIGN KEY (`orderID`) REFERENCES `Orders`(`orderID`) ON DELETE RESTRICT,
-    FOREIGN KEY (`productID`) REFERENCES `Products`(`productID`) ON DELETE RESTRICT
+    FOREIGN KEY (`orderID`) REFERENCES `Orders`(`orderID`) 
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+    FOREIGN KEY (`productID`) REFERENCES `Products`(`productID`) 
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
 );
 
 -- sample data insertion --
