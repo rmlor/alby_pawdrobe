@@ -38,7 +38,7 @@ CREATE TABLE `Customers`(
 -- define Addresses entity
 CREATE TABLE `Addresses`(
     `addressID` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `customerID` INT(11),
+    `customerID` INT(11) DEFAULT NULL,
     `addressLabel` VARCHAR(15) NOT NULL,
     `streetAddress` VARCHAR(50) NOT NULL,
     `unit` VARCHAR(50) DEFAULT NULL,
@@ -53,7 +53,7 @@ CREATE TABLE `Addresses`(
 --define Dogs entity
 CREATE TABLE `Dogs`(
     `dogID` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `customerID` INT(11) UNSIGNED,
+    `customerID` INT(11) UNSIGNED DEFAULT NULL,
     `dogName` VARCHAR(50) NOT NULL,
     `upperNeckGirthIn` INT(11) NOT NULL,
     `lowerNeckGirthIn` INT(11) NOT NULL,
@@ -90,8 +90,8 @@ CREATE TABLE `Breeds`(
 -- define Dog_Breeds entity
 CREATE TABLE `Dog_Breeds`(
     `dogBreedID` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `dogID` INT(11),
-    `breedID` INT(11),
+    `dogID` INT(11) DEFAULT NULL,
+    `breedID` INT(11) DEFAULT NULL,
     FOREIGN KEY (`dogID`) REFERENCES `Dogs`(`dogID`) 
     ON DELETE SET NULL
     ON UPDATE CASCADE,
@@ -145,8 +145,8 @@ CREATE TABLE `Products`(
 -- define Orders entity
 CREATE TABLE `Orders`(
     `orderID` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `dogID` INT(11),
-    `addressID` INT(11),
+    `dogID` INT(11) DEFAULT NULL,
+    `addressID` INT(11) DEFAULT NULL,
     `orderDate` DATE NOT NULL,
     `orderGiftNote` VARCHAR(255) DEFAULT NULL,
     `orderCustomRequest` ENUM(
@@ -177,8 +177,8 @@ CREATE TABLE `Orders`(
 -- define Order_Products entity
 CREATE TABLE `Order_Products`(
     `orderProductID` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `orderID` INT(11),
-    `productID` INT(11),
+    `orderID` INT(11) DEFAULT NULL,
+    `productID` INT(11) DEFAULT NULL,
     `orderProductRequest` VARCHAR(255) NULL,
     `orderProductSalePrice` DECIMAL(8, 2) NOT NULL,
     FOREIGN KEY (`orderID`) REFERENCES `Orders`(`orderID`) 
