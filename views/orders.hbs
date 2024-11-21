@@ -2,19 +2,17 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Manage Orders</title>
+    <title>Order Tracker</title>
 </head>
 <body>
     <h1>Order Tracker - Turning Ideas into Delivered Dreams</h1>
     <p>Track order information, product customizations, and shipping details, fulfilling high-quality promises</p>
-    <!-- (Table) View All Orders -->
+
     <table border="1">
         <thead>
             <tr>
                 <th>Order ID</th>
                 <th>Dog ID</th>
-                <th>Dog Name</th>
-                <th>Customer Name</th>
                 <th>Address ID</th>
                 <th>Order Date</th>
                 <th>Gift Note</th>
@@ -31,8 +29,6 @@
             <tr>
                 <td>{{this.orderID}}</td>
                 <td>{{this.dogID}}</td>
-                <td>{{this.dogName}}</td>
-                <td>{{this.customerName}}</td>
                 <td>{{this.addressID}}</td>
                 <td>{{this.orderDate}}</td>
                 <td>{{this.orderGiftNote}}</td>
@@ -41,66 +37,15 @@
                 <td>{{this.orderShippedDate}}</td>
                 <td>{{this.orderDeliveredDate}}</td>
                 <td>
-                    <button onclick="openProductModal({{this.orderID}})">Manage</button>
+                    <button onclick="viewProducts({{this.orderID}})">View Products</button>
                 </td>
                 <td>
-                    <button onclick="openOrderModal('edit', {{@index}})">Edit</button>
-                    <button onclick="confirmDeleteModal({{this.orderID}})>Delete</button>
+                    <button>Edit</button>
+                    <button>Delete</button>
                 </td>
             </tr>
             {{/each}}
         </tbody>
-    <!-- (Button) Add An Order -->
-    <button onclick="openOrderModal('add')">Add Order</button>
     </table>
-    <!-- (Modal) Manage All Purchased Products for orderID: refer to https://www.w3schools.com/howto/howto_css_modals.asp -->
-    <div id="productModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('productModal')">&times;</span>
-            <h2>Purchased Products</h2>
-            <table id=""productTable">
-                <thead>
-                    <tr>
-                        <th>Order ID</th>
-                        <th>Product Name</th>
-                        <th>Custom Request</th>
-                        <th>Sale Price</th>
-                        <th>Product Management</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-            <!-- (BUTTON) Add A Purchased Product for orderID -->
-            <button onclick="showAddProductForm()">Add Product</button>
-            <!-- (FORM) Add A Purchased Product for orderID -->
-            <div id="addProductForm" class="hidden">
-                <h2>Purchased Product Information</h2>
-                <form>
-                    <label for="productSelect">Product:</label>
-                    <select id="productSelect"></select><br>
-
-                    <label for="productCustomRequest">Custom Request:</label>
-                    <input type="text" id="productCustomRequest"><br>
-
-                    <label for="productSalePrice">Sale Price:</label>
-                    <input type="number" id="productSalePrice" step="0.01" min="0" required><br>
-                    
-                    <button type="button" onclick="addProductToOrder()">Add Product</button>
-                </form>
-            </div>
-        </div>
-    </div>
-    <!-- (Modal) Delete Order by orderID: refer to https://www.w3schools.com/howto/howto_css_modals.asp -->
-    <div id="deleteModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('deleteModal')">&times;</span>
-            <h2>Delete Confirmation</h2>
-            <p>Are you sure you want to delete this order?</p>
-            <button id="confirmDeleteButton">Yes</button>
-            <button onclick="closeModal('deleteModal')">No</button>
-        </div>
-    </div>
-    <!-- Embeded JS to handle DOM manipulation and AJAX request -->
-    <script src="/js/manage_order_products.js"></script>
 </body>
 </html>
