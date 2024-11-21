@@ -38,7 +38,7 @@ CREATE TABLE `Customers`(
 -- define Addresses entity
 CREATE TABLE `Addresses`(
     `addressID` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `customerID` INT(11) NOT NULL,
+    `customerID` INT(11),
     `addressLabel` VARCHAR(15) NOT NULL,
     `streetAddress` VARCHAR(50) NOT NULL,
     `unit` VARCHAR(50) DEFAULT NULL,
@@ -53,7 +53,7 @@ CREATE TABLE `Addresses`(
 --define Dogs entity
 CREATE TABLE `Dogs`(
     `dogID` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `customerID` INT(11) UNSIGNED NOT NULL,
+    `customerID` INT(11) UNSIGNED,
     `dogName` VARCHAR(50) NOT NULL,
     `upperNeckGirthIn` INT(11) NOT NULL,
     `lowerNeckGirthIn` INT(11) NOT NULL,
@@ -63,7 +63,7 @@ CREATE TABLE `Dogs`(
     `pawWidthIn` DECIMAL(2,1) NOT NULL,
     `pawLengthIn` DECIMAL(2,1) NOT NULL,
     FOREIGN KEY (`customerID`) REFERENCES `Customers`(`customerID`) 
-    ON DELETE SET NULL
+    ON DELETE SET NULL 
     ON UPDATE CASCADE
 );
 
@@ -90,12 +90,14 @@ CREATE TABLE `Breeds`(
 -- define Dog_Breeds entity
 CREATE TABLE `Dog_Breeds`(
     `dogBreedID` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `dogID` INT(11) NOT NULL,
-    `breedID` INT(11) NOT NULL,
+    `dogID` INT(11),
+    `breedID` INT(11),
     FOREIGN KEY (`dogID`) REFERENCES `Dogs`(`dogID`) 
     ON DELETE SET NULL
     ON UPDATE CASCADE,
-    FOREIGN KEY (`breedID`) REFERENCES `Breeds`(`breedID`) ON DELETE RESTRICT
+    FOREIGN KEY (`breedID`) REFERENCES `Breeds`(`breedID`) 
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
 );
 
 -- define Products entity
@@ -143,8 +145,8 @@ CREATE TABLE `Products`(
 -- define Orders entity
 CREATE TABLE `Orders`(
     `orderID` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `dogID` INT(11) NOT NULL,
-    `addressID` INT(11) NOT NULL,
+    `dogID` INT(11),
+    `addressID` INT(11),
     `orderDate` DATE NOT NULL,
     `orderGiftNote` VARCHAR(255) DEFAULT NULL,
     `orderCustomRequest` ENUM(
@@ -168,22 +170,22 @@ CREATE TABLE `Orders`(
     ON DELETE SET NULL
     ON UPDATE CASCADE,
     FOREIGN KEY (`addressID`) REFERENCES `Addresses`(`addressID`) 
-    ON DELETE RESTRICT
+    ON DELETE SET NULL
     on UPDATE CASCADE
 );
 
 -- define Order_Products entity
 CREATE TABLE `Order_Products`(
     `orderProductID` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `orderID` INT(11) NOT NULL,
-    `productID` INT(11) NOT NULL,
+    `orderID` INT(11),
+    `productID` INT(11),
     `orderProductRequest` VARCHAR(255) NULL,
     `orderProductSalePrice` DECIMAL(8, 2) NOT NULL,
     FOREIGN KEY (`orderID`) REFERENCES `Orders`(`orderID`) 
-    ON DELETE RESTRICT
+    ON DELETE SET NULL
     ON UPDATE CASCADE,
     FOREIGN KEY (`productID`) REFERENCES `Products`(`productID`) 
-    ON DELETE RESTRICT
+    ON DELETE SET NULL
     ON UPDATE CASCADE
 );
 
