@@ -63,7 +63,7 @@ CREATE TABLE `Dogs`(
     `pawWidthIn` DECIMAL(2,1) NOT NULL,
     `pawLengthIn` DECIMAL(2,1) NOT NULL,
     FOREIGN KEY (`customerID`) REFERENCES `Customers`(`customerID`) 
-    ON DELETE SET NULL 
+    ON DELETE SET NULL
     ON UPDATE CASCADE
 );
 
