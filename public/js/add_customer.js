@@ -55,8 +55,7 @@ addCustomerForm.addEventListener("submit", function (e) {
 })
 
 
-// Creates a single row from an Object representing a single record from 
-// bsg_people
+// Creates a single row from an Object representing a single record from Customers
 addRowToTable = (data) => {
 
     // Get a reference to the current table on the page and clear it out.
@@ -68,6 +67,8 @@ addRowToTable = (data) => {
     // Get a reference to the new row from the database query (last object)
     let parsedData = JSON.parse(data);
     let newRow = parsedData[parsedData.length - 1]
+    
+    console.log(newRow)
 
     // Create a row and 4 cells
     let row = document.createElement("TR");
@@ -76,18 +77,30 @@ addRowToTable = (data) => {
     let customerEmailCell = document.createElement("TD");
     let customerPhoneCell = document.createElement("TD");
 
+    let deleteCell = document.createElement("TD");
+
     // Fill the cells with correct data
     customerIDCell.innerText = newRow.customerID;
     customerNameCell.innerText = newRow.customerName;
     customerEmailCell.innerText = newRow.customerEmail;
     customerPhoneCell.innerText = newRow.customerPhone;
 
+    deleteCell = document.createElement("button");
+    deleteCell.innerHTML = "Delete";
+    deleteCell.onclick = function(){
+        deleteCustomer(newRow.customerID);
+    };
+
     // Add the cells to the row 
     row.appendChild(customerIDCell);
     row.appendChild(customerNameCell);
     row.appendChild(customerEmailCell);
     row.appendChild(customerPhoneCell);
+    row.appendChild(deleteCell);
     
+    // Add a row attribute so the deleteRow function can find a newly added row
+    row.setAttribute('data-value', newRow.customerID);
+
     // Add the row to the table
     currentTable.appendChild(row);
 }

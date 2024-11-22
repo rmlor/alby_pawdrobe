@@ -12,6 +12,7 @@
                 {{@key}}
             </th>
             {{/each}}
+            <th>Delete</th>
         </tr>
     </thead>
 
@@ -20,11 +21,12 @@
 
         {{!-- For each row, print the id, fname, lname, homeworld and age, in order --}}
         {{#each data}}
-        <tr>
+        <tr data-value={{this.customerID}}>
             <td>{{this.customerID}}</td>
             <td>{{this.customerName}}</td>
             <td>{{this.customerEmail}}</td>
             <td>{{this.customerPhone}}</td>
+            <td><button onclick="deleteCustomer({{this.customerID}})">Delete</button></td>
         </tr>
         {{/each}}
     </tbody>
@@ -47,3 +49,4 @@
 
 {{!-- Embed our javascript to handle the DOM manipulation and AJAX request --}}
 <script src="./js/add_customer.js"></script>
+<script src="./js/delete_customer.js"></script>

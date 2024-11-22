@@ -122,6 +122,26 @@ app.get('/products', function(req, res)             //Fetch Products
         })
     });
 
+    //delete customer
+
+    app.delete('/delete-customer-ajax/', function(req,res,next){
+        let data = req.body;
+        let customerID = parseInt(data.id);
+        console.log(data)
+        let deleteCustomer = `DELETE FROM Customers WHERE customerID = ?`;
+      
+      
+              // Run the 1st query
+              db.pool.query(deleteCustomer, [customerID], function(error, rows, fields){
+                  if (error) {
+      
+                  // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
+                  console.log(error);
+                  res.sendStatus(400);
+                  }
+      
+      })});
+
     //Customers Page End
 
     //Add a product to an order
