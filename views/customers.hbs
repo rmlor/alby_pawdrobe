@@ -12,6 +12,7 @@
                 {{@key}}
             </th>
             {{/each}}
+            <th>Delete</th>
         </tr>
     </thead>
 
@@ -20,11 +21,12 @@
 
         {{!-- For each row, print the id, fname, lname, homeworld and age, in order --}}
         {{#each data}}
-        <tr>
+        <tr data-value={{this.customerID}}>
             <td>{{this.customerID}}</td>
             <td>{{this.customerName}}</td>
             <td>{{this.customerEmail}}</td>
             <td>{{this.customerPhone}}</td>
+            <td><button onclick="deleteCustomer({{this.customerID}})">Delete</button></td>
         </tr>
         {{/each}}
     </tbody>
@@ -40,10 +42,37 @@
     <input type="text" name="customerEmail" id="customerEmail" value="example@example.com" required>
 
     <label for="customerPhone">Phone Number: </label>
-    <input type="text" name="customerPhone" id="customerPhone" required>
+    <input type="text" name="customerPhone" id="customerPhone" value="999-999-9999" required>
 
     <input type="submit">
 </form>
 
+<h2>Updating A Customer Form</h2>
+<p>To update a specific customer, fill out the form below.</p>
+<form id="update-customer-form-ajax">
+
+    <label for="input-customerName">Full name: </label>
+    <select name="input-customerName" id="mySelect">
+        <option value="test">Select a Person</option>
+        {{#each data}}
+        <option value="{{this.customerID}}">{{this.customerName}}</option>
+        {{/each}}
+    </select>
+
+    <label for="input-customerEmail">Email: </label>
+    <input type="text" name="input-customerEmail" id="input-customerEmail" value="example@example.com" required>
+
+    <label for="input-customerPhone">Phone Number: </label>
+    <input type="text" name="input-customerPhone" id="input-customerPhone" value="999-999-9999" required>
+
+    <input type="submit">
+
+</form>
+
+
+
 {{!-- Embed our javascript to handle the DOM manipulation and AJAX request --}}
 <script src="./js/add_customer.js"></script>
+<script src="./js/delete_customer.js"></script>
+<script src="./js/update_customer.js"></script>
+
