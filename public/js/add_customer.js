@@ -55,9 +55,10 @@ addCustomerForm.addEventListener("submit", function (e) {
 })
 
 
-// Creates a single row from an Object representing a single record from 
-// bsg_people
+// Creates a single row from an Object representing a single record from Customers
 addRowToTable = (data) => {
+
+    console.log(data)
 
     // Get a reference to the current table on the page and clear it out.
     let currentTable = document.getElementById("customer-table");
@@ -76,18 +77,39 @@ addRowToTable = (data) => {
     let customerEmailCell = document.createElement("TD");
     let customerPhoneCell = document.createElement("TD");
 
+    let deleteCell = document.createElement("TD");
+
     // Fill the cells with correct data
     customerIDCell.innerText = newRow.customerID;
     customerNameCell.innerText = newRow.customerName;
     customerEmailCell.innerText = newRow.customerEmail;
     customerPhoneCell.innerText = newRow.customerPhone;
 
+    deleteCell = document.createElement("button");
+    deleteCell.innerHTML = "Delete";
+    deleteCell.onclick = function(){
+        deleteCustomer(newRow.customerID);
+    };
+
     // Add the cells to the row 
     row.appendChild(customerIDCell);
     row.appendChild(customerNameCell);
     row.appendChild(customerEmailCell);
     row.appendChild(customerPhoneCell);
+    row.appendChild(deleteCell);
     
+    // Add a row attribute so the deleteRow function can find a newly added row
+    row.setAttribute('data-value', newRow.customerID);
+
     // Add the row to the table
     currentTable.appendChild(row);
+
+    // Find drop down menu, create a new option, fill data in the option (full name, id),
+    // then append option to drop down menu so newly created rows via ajax will be found in it without needing a refresh
+    let selectMenu = document.getElementById("mySelect");
+    let option = document.createElement("option");
+    option.text = newRow.customerName;
+    option.value = newRow.customerID;
+    selectMenu.add(option);
+
 }
