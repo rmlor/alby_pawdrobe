@@ -7,7 +7,7 @@ var app     = express();                            // We need to instantiate an
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(express.static('public'))
-PORT        = 7560;                                 // Set a port number at the top so it's easy to change in the future
+PORT        = 4189;                                 // Set a port number at the top so it's easy to change in the future
 var db = require('./database/db-connector')         // Connecting to database
 
 app.use(express.json())
@@ -28,14 +28,8 @@ app.get('/', function(req, res)
 });                                             // will process this file, before sending the finished HTML to the client.
 
 
-    // CUSTOMERS PAGE START
+// CUSTOMERS PAGE START
 
-    app.get('/customers', function(req, res)
-    {  
-        let selectCustomers = "SELECT * FROM Customers;";               // Define our query
-    });
-
-    //Customers page
 app.get('/customers', function(req, res)
 {  
     let selectCustomers = "SELECT * FROM Customers;";               // Define our query
@@ -88,65 +82,65 @@ app.post('/add-customer-ajax', function(req, res)
 });
       
       
-      //delete customer
+//delete customer
 
-    app.delete('/delete-customer-ajax/', function(req,res,next){
-        let data = req.body;
-        let customerID = parseInt(data.id);
-        console.log(data)
-        let deleteCustomer = `DELETE FROM Customers WHERE customerID = ?`;
-      
-      
-              // Run the 1st query
-              db.pool.query(deleteCustomer, [customerID], function(error, rows, fields){
-                if (error) {
-                    console.log(error);
-                    res.sendStatus(400);
-                } else {
-                    res.sendStatus(204);
-                }
-      
-      })});
+app.delete('/delete-customer-ajax/', function(req,res,next){
+    let data = req.body;
+    let customerID = parseInt(data.id);
+    console.log(data)
+    let deleteCustomer = `DELETE FROM Customers WHERE customerID = ?`;
+    
+    
+            // Run the 1st query
+            db.pool.query(deleteCustomer, [customerID], function(error, rows, fields){
+            if (error) {
+                console.log(error);
+                res.sendStatus(400);
+            } else {
+                res.sendStatus(204);
+            }
+    
+    })});
 
-    app.put('/put-customer-ajax', function(req,res,next){
+app.put('/put-customer-ajax', function(req,res,next){
     let data = req.body;
 
     console.log(data)
-    
+
     let customerName = parseInt(data.customerName);
     let customerEmail = data.customerEmail;
     let customerPhone = data.customerPhone;
-    
+
     let queryUpdateCustomer = `UPDATE Customers SET customerEmail = ?, customerPhone = ? WHERE Customers.customerID = ?`;
     let selectCustomer = `SELECT * FROM Customers WHERE Customers.customerID = ?`
-    
-            // Run the 1st query
-            db.pool.query(queryUpdateCustomer, [customerEmail, customerPhone, customerName], function(error, rows, fields){
-                if (error) {
-    
-                // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
-                console.log(error);
-                res.sendStatus(400);
-                }
-    
-                // If there was no error, we run our second query and return that data so we can use it to update the people's
-                // table on the front-end
-                else
-                {
-                    // Run the second query
-                    db.pool.query(selectCustomer, [customerName], function(error, rows, fields) {
-    
-                        if (error) {
-                            console.log(error);
-                            res.sendStatus(400);
-                        } else {
-                            res.send(rows);
-                        }
-                    })
-                }
-    })});
 
-    // CUSTOMERS PAGE END
+        // Run the 1st query
+        db.pool.query(queryUpdateCustomer, [customerEmail, customerPhone, customerName], function(error, rows, fields){
+            if (error) {
+
+            // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
+            console.log(error);
+            res.sendStatus(400);
+            }
+
+            // If there was no error, we run our second query and return that data so we can use it to update the people's
+            // table on the front-end
+            else
+            {
+                // Run the second query
+                db.pool.query(selectCustomer, [customerName], function(error, rows, fields) {
+
+                    if (error) {
+                        console.log(error);
+                        res.sendStatus(400);
+                    } else {
+                        res.send(rows);
+                    }
+                })
+            }
+})});
+
+// CUSTOMERS PAGE END
 
 
 /*
