@@ -1,0 +1,49 @@
+{{!-- Create a table --}}
+<table id="customer-table">
+
+    {{!-- Header section --}}
+    <thead>
+
+        {{!-- For just the first row, we print each key of the row object as a header cell so we
+        know what each column means when the page renders --}}
+        <tr>
+            {{#each data.[0]}}
+            <th>
+                {{@key}}
+            </th>
+            {{/each}}
+        </tr>
+    </thead>
+
+    {{!-- Body section --}}
+    <tbody>
+
+        {{!-- For each row, print the id, fname, lname, homeworld and age, in order --}}
+        {{#each data}}
+        <tr>
+            <td>{{this.customerID}}</td>
+            <td>{{this.customerName}}</td>
+            <td>{{this.customerEmail}}</td>
+            <td>{{this.customerPhone}}</td>
+        </tr>
+        {{/each}}
+    </tbody>
+</table>
+
+<h2>Adding Data with AJAX</h2>
+<p>To add a new customer, please enter their information below and click 'Submit'!</p>
+<form id="add-customer-form-ajax">
+    <label for="customerName">Name: </label>
+    <input type="text" name="customerName" id="customerName" required> 
+    
+    <label for="customerEmail">Email: </label>
+    <input type="text" name="customerEmail" id="customerEmail" value="example@example.com" required>
+
+    <label for="customerPhone">Phone Number: </label>
+    <input type="text" name="customerPhone" id="customerPhone" required>
+
+    <input type="submit">
+</form>
+
+{{!-- Embed our javascript to handle the DOM manipulation and AJAX request --}}
+<script src="./js/add_customer.js"></script>
