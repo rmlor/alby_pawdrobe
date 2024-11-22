@@ -58,6 +58,8 @@ addCustomerForm.addEventListener("submit", function (e) {
 // Creates a single row from an Object representing a single record from Customers
 addRowToTable = (data) => {
 
+    console.log(data)
+
     // Get a reference to the current table on the page and clear it out.
     let currentTable = document.getElementById("customer-table");
 
@@ -67,8 +69,6 @@ addRowToTable = (data) => {
     // Get a reference to the new row from the database query (last object)
     let parsedData = JSON.parse(data);
     let newRow = parsedData[parsedData.length - 1]
-    
-    console.log(newRow)
 
     // Create a row and 4 cells
     let row = document.createElement("TR");
@@ -103,4 +103,13 @@ addRowToTable = (data) => {
 
     // Add the row to the table
     currentTable.appendChild(row);
+
+    // Find drop down menu, create a new option, fill data in the option (full name, id),
+    // then append option to drop down menu so newly created rows via ajax will be found in it without needing a refresh
+    let selectMenu = document.getElementById("mySelect");
+    let option = document.createElement("option");
+    option.text = newRow.customerName;
+    option.value = newRow.customerID;
+    selectMenu.add(option);
+
 }

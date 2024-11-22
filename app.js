@@ -7,7 +7,7 @@ var app     = express();                            // We need to instantiate an
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(express.static('public'))
-PORT        = 4189;                                 // Set a port number at the top so it's easy to change in the future
+PORT        = 7560;                                 // Set a port number at the top so it's easy to change in the future
 var db = require('./database/db-connector')         // Connecting to database
 const { engine } = require('express-handlebars');
 var exphbs = require('express-handlebars');         // Import express-handlebars
@@ -70,7 +70,24 @@ app.get('/products', function(req, res)             //Fetch Products
         });
     });
 
-    //Customers page
+    //Add a product to an order
+    app.post('/orders/:id/products/add', function(req, res) 
+    {
+        let orderId = req.params.id;
+        let {productID, orderProductRequest, orderProductSalePrice} = req.body;
+    
+        let queryAddProductToOrder = `
+            INSERT INTO Order_Products (orderID, productID, orderProductRequest, orderProductSalePrice)
+            VALUES (?, ?, ?, ?);
+        `;
+    
+        db.pool.query(queryAddProductToOrder, [orderId, productID, orderProductRequest, orderProductSalePrice], (err, results) => {
+            res.redirect(`/orders`);
+        });
+    });
+
+    // CUSTOMERS PAGE START
+
     app.get('/customers', function(req, res)
     {  
         let selectCustomers = "SELECT * FROM Customers;";               // Define our query
@@ -133,32 +150,54 @@ app.get('/products', function(req, res)             //Fetch Products
       
               // Run the 1st query
               db.pool.query(deleteCustomer, [customerID], function(error, rows, fields){
-                  if (error) {
-      
-                  // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
-                  console.log(error);
-                  res.sendStatus(400);
-                  }
+                if (error) {
+                    console.log(error);
+                    res.sendStatus(400);
+                } else {
+                    res.sendStatus(204);
+                }
       
       })});
 
-    //Customers Page End
+    app.put('/put-customer-ajax', function(req,res,next){
+    let data = req.body;
 
-    //Add a product to an order
-    app.post('/orders/:id/products/add', function(req, res) 
-    {
-        let orderId = req.params.id;
-        let {productID, orderProductRequest, orderProductSalePrice} = req.body;
+    console.log(data)
     
-        let queryAddProductToOrder = `
-            INSERT INTO Order_Products (orderID, productID, orderProductRequest, orderProductSalePrice)
-            VALUES (?, ?, ?, ?);
-        `;
+    let customerName = parseInt(data.customerName);
+    let customerEmail = data.customerEmail;
+    let customerPhone = data.customerPhone;
     
-        db.pool.query(queryAddProductToOrder, [orderId, productID, orderProductRequest, orderProductSalePrice], (err, results) => {
-            res.redirect(`/orders`);
-        });
-    });
+    let queryUpdateCustomer = `UPDATE Customers SET customerEmail = ?, customerPhone = ? WHERE Customers.customerID = ?`;
+    let selectCustomer = `SELECT * FROM Customers WHERE Customers.customerID = ?`
+    
+            // Run the 1st query
+            db.pool.query(queryUpdateCustomer, [customerEmail, customerPhone, customerName], function(error, rows, fields){
+                if (error) {
+    
+                // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
+                console.log(error);
+                res.sendStatus(400);
+                }
+    
+                // If there was no error, we run our second query and return that data so we can use it to update the people's
+                // table on the front-end
+                else
+                {
+                    // Run the second query
+                    db.pool.query(selectCustomer, [customerName], function(error, rows, fields) {
+    
+                        if (error) {
+                            console.log(error);
+                            res.sendStatus(400);
+                        } else {
+                            res.send(rows);
+                        }
+                    })
+                }
+    })});
+
+    // CUSTOMERS PAGE END
 
     
 /*
