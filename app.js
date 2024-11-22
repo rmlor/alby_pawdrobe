@@ -33,6 +33,7 @@ app.get('/', function(req, res)
     app.get('/customers', function(req, res)
     {  
         let selectCustomers = "SELECT * FROM Customers;";               // Define our query
+    });
 
     //Customers page
 app.get('/customers', function(req, res)
