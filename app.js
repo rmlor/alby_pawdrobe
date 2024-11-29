@@ -7,7 +7,7 @@ var app     = express();                            // We need to instantiate an
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(express.static('public'))
-PORT        = 4189;                                 // Set a port number at the top so it's easy to change in the future
+PORT        = 7560;                                 // Set a port number at the top so it's easy to change in the future
 var db = require('./database/db-connector')         // Connecting to database
 
 app.use(express.json())
@@ -22,10 +22,47 @@ app.set('view engine', '.hbs');                     // Tell express to use the h
 /*
 ROUTES
 */
+
+// INDEX START 
 app.get('/', function(req, res)
 {
     res.render('index');                        // Note the call to render() and not send(). Using render() ensures the templating engine
 });                                             // will process this file, before sending the finished HTML to the client.
+
+// INDEX END
+
+
+
+// BREEDS START
+
+app.get('/breeds', function(req, res)
+{  
+    let selectBreeds = "SELECT * FROM Breeds;";               // Define our query
+
+    db.pool.query(selectBreeds, function(error, rows, fields){    // Execute the query
+
+        res.render('breeds', {data: rows});                  // Render the index.hbs file, and also send the renderer
+    })                
+});  
+
+// BREEDS END
+
+
+
+// ADRESSES START
+
+app.get('/addresses', function(req, res)
+{  
+    let selectAddresses = "SELECT * FROM Addresses;";               // Define our query
+
+    db.pool.query(selectAddresses, function(error, rows, fields){    // Execute the query
+
+        res.render('addresses', {data: rows});                  // Render the index.hbs file, and also send the renderer
+    })                
+});  
+
+// ADDRESSES END
+
 
 
 // CUSTOMERS PAGE START
@@ -141,6 +178,7 @@ app.put('/put-customer-ajax', function(req,res,next){
 })});
 
 // CUSTOMERS PAGE END
+
 
 
 /*
