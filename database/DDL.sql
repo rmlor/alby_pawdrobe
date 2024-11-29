@@ -39,7 +39,6 @@ CREATE TABLE `Customers`(
 CREATE TABLE `Addresses`(
     `addressID` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `customerID` INT(11) UNSIGNED DEFAULT NULL,
-    `addressLabel` VARCHAR(15) NOT NULL,
     `streetAddress` VARCHAR(50) NOT NULL,
     `unit` VARCHAR(50) DEFAULT NULL,
     `city` VARCHAR(50) NOT NULL,

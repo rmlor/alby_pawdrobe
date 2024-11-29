@@ -22,20 +22,53 @@ app.set('view engine', '.hbs');                     // Tell express to use the h
 /*
 ROUTES
 */
+
+// INDEX START 
 app.get('/', function(req, res)
 {
     res.render('index');                        // Note the call to render() and not send(). Using render() ensures the templating engine
 });                                             // will process this file, before sending the finished HTML to the client.
 
+// INDEX END
 
-    // CUSTOMERS PAGE START
 
-    app.get('/customers', function(req, res)
-    {  
-        let selectCustomers = "SELECT * FROM Customers;";               // Define our query
-    });
 
-    //Customers page
+// BREEDS START
+
+app.get('/breeds', function(req, res)
+{  
+    let selectBreeds = "SELECT * FROM Breeds;";               // Define our query
+
+    db.pool.query(selectBreeds, function(error, rows, fields){    // Execute the query
+
+        res.render('breeds', {data: rows});                  // Render the index.hbs file, and also send the renderer
+    })                
+});  
+
+
+// BREEDS END
+
+
+
+// ADRESSES START
+
+app.get('/addresses', function(req, res)
+{  
+    let selectAddresses = "SELECT * FROM Addresses;";               // Define our query
+
+    db.pool.query(selectAddresses, function(error, rows, fields){    // Execute the query
+
+        res.render('addresses', {data: rows});                  // Render the index.hbs file, and also send the renderer
+    })                
+});  
+
+// ADDRESSES END
+
+
+
+// CUSTOMERS PAGE START
+
+
 app.get('/customers', function(req, res)
 {  
     let selectCustomers = "SELECT * FROM Customers;";               // Define our query
@@ -88,65 +121,66 @@ app.post('/add-customer-ajax', function(req, res)
 });
       
       
-      //delete customer
+//delete customer
 
-    app.delete('/delete-customer-ajax/', function(req,res,next){
-        let data = req.body;
-        let customerID = parseInt(data.id);
-        console.log(data)
-        let deleteCustomer = `DELETE FROM Customers WHERE customerID = ?`;
-      
-      
-              // Run the 1st query
-              db.pool.query(deleteCustomer, [customerID], function(error, rows, fields){
-                if (error) {
-                    console.log(error);
-                    res.sendStatus(400);
-                } else {
-                    res.sendStatus(204);
-                }
-      
-      })});
+app.delete('/delete-customer-ajax/', function(req,res,next){
+    let data = req.body;
+    let customerID = parseInt(data.id);
+    console.log(data)
+    let deleteCustomer = `DELETE FROM Customers WHERE customerID = ?`;
+    
+    
+            // Run the 1st query
+            db.pool.query(deleteCustomer, [customerID], function(error, rows, fields){
+            if (error) {
+                console.log(error);
+                res.sendStatus(400);
+            } else {
+                res.sendStatus(204);
+            }
+    
+    })});
 
-    app.put('/put-customer-ajax', function(req,res,next){
+app.put('/put-customer-ajax', function(req,res,next){
     let data = req.body;
 
     console.log(data)
-    
+
     let customerName = parseInt(data.customerName);
     let customerEmail = data.customerEmail;
     let customerPhone = data.customerPhone;
-    
+
     let queryUpdateCustomer = `UPDATE Customers SET customerEmail = ?, customerPhone = ? WHERE Customers.customerID = ?`;
     let selectCustomer = `SELECT * FROM Customers WHERE Customers.customerID = ?`
-    
-            // Run the 1st query
-            db.pool.query(queryUpdateCustomer, [customerEmail, customerPhone, customerName], function(error, rows, fields){
-                if (error) {
-    
-                // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
-                console.log(error);
-                res.sendStatus(400);
-                }
-    
-                // If there was no error, we run our second query and return that data so we can use it to update the people's
-                // table on the front-end
-                else
-                {
-                    // Run the second query
-                    db.pool.query(selectCustomer, [customerName], function(error, rows, fields) {
-    
-                        if (error) {
-                            console.log(error);
-                            res.sendStatus(400);
-                        } else {
-                            res.send(rows);
-                        }
-                    })
-                }
-    })});
 
-    // CUSTOMERS PAGE END
+        // Run the 1st query
+        db.pool.query(queryUpdateCustomer, [customerEmail, customerPhone, customerName], function(error, rows, fields){
+            if (error) {
+
+            // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
+            console.log(error);
+            res.sendStatus(400);
+            }
+
+            // If there was no error, we run our second query and return that data so we can use it to update the people's
+            // table on the front-end
+            else
+            {
+                // Run the second query
+                db.pool.query(selectCustomer, [customerName], function(error, rows, fields) {
+
+                    if (error) {
+                        console.log(error);
+                        res.sendStatus(400);
+                    } else {
+                        res.send(rows);
+                    }
+                })
+            }
+})});
+
+// CUSTOMERS PAGE END
+
 
 
 /*

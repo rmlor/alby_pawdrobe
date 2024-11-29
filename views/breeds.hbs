@@ -1,0 +1,31 @@
+{{!-- Create a table --}}
+<table id="breeds-table">
+
+    {{!-- Header section --}}
+    <thead>
+
+        {{!-- For just the first row, we print each key of the row object as a header cell so we
+        know what each column means when the page renders --}}
+        <tr>
+            {{#each data.[0]}}
+            <th>
+                {{@key}}
+            </th>
+            {{/each}}
+        </tr>
+    </thead>
+
+    {{!-- Body section --}}
+    <tbody>
+
+        {{!-- For each row, print the attributes in order--}}
+        {{#each data}}
+        <tr data-value={{this.breedID}}>
+            <td>{{this.breedID}}</td>
+            <td>{{this.breedName}}</td>
+            <td>{{this.breedCoatType}}</td>
+            <td>{{this.breedShedLevel}}</td>
+        </tr>
+        {{/each}}
+    </tbody>
+</table>

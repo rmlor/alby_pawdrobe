@@ -1,0 +1,34 @@
+{{!-- Create a table --}}
+<table id="addresses-table">
+
+    {{!-- Header section --}}
+    <thead>
+
+        {{!-- For just the first row, we print each key of the row object as a header cell so we
+        know what each column means when the page renders --}}
+        <tr>
+            {{#each data.[0]}}
+            <th>
+                {{@key}}
+            </th>
+            {{/each}}
+        </tr>
+    </thead>
+
+    {{!-- Body section --}}
+    <tbody>
+
+        {{!-- For each row, print the attributes in order--}}
+        {{#each data}}
+        <tr data-value={{this.addressID}}>
+            <td>{{this.addressID}}</td>
+            <td>{{this.customerID}}</td>
+            <td>{{this.streetAddress}}</td>
+            <td>{{this.unit}}</td>
+            <td>{{this.city}}</td>
+            <td>{{this.state}}</td>
+            <td>{{this.postalCode}}</td>
+        </tr>
+        {{/each}}
+    </tbody>
+</table>
