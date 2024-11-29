@@ -60,7 +60,9 @@ app.get('/addresses', function(req, res)
 
         res.render('addresses', {data: rows});                  // Render the index.hbs file, and also send the renderer
     })                
-});  
+});
+
+
 
 // ADDRESSES END
 
