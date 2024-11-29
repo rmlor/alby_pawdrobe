@@ -33,7 +33,7 @@ app.get('/', function(req, res)
 
 
 
-// BREEDS START
+// BREEDS PAGE START
 
 app.get('/breeds', function(req, res)
 {  
@@ -46,30 +46,83 @@ app.get('/breeds', function(req, res)
 });  
 
 
-// BREEDS END
+// BREEDS PAGE END
 
 
 
-// ADRESSES START
+// ADRESSES PAGE START
 
 app.get('/addresses', function(req, res)
 {  
-    let selectAddresses = "SELECT * FROM Addresses;";               // Define our query
+    let selectAddresses = "SELECT * FROM Addresses;";                // Define our query
 
     db.pool.query(selectAddresses, function(error, rows, fields){    // Execute the query
 
-        res.render('addresses', {data: rows});                  // Render the index.hbs file, and also send the renderer
+        res.render('addresses', {data: rows});                       // Render the index.hbs file, and also send the renderer
     })                
 });
 
+app.post('/add-address-ajax', function(req, res) 
+{
+    // Capture the incoming data and parse it back to a JS object
+    let data = req.body;
 
+    // Capture NULL values
+    let customerID = parseInt(data.customerID);
 
-// ADDRESSES END
+    let streetAddress = data.streetAddress;
+
+    let unit = data.unit;
+    if (isNaN(unit))
+        {
+            unit = 'NULL'
+        }
+
+    let city = data.city;
+
+    let state = data.state;
+
+    let postalCode = parseInt(data.postalCode);
+
+    // Create the query and run it on the database
+    query1 = `INSERT INTO Addresses (customerID, streetAddress, unit, city, state, postalCode) VALUES ('${data.customerID}', '${data.streetAddress}', '${data,unit}', '${data.city}', '${data.state}', '${data.postalCode}')`;
+    db.pool.query(query1, function(error, rows, fields){
+
+        // Check to see if there was an error
+        if (error) {
+
+            // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
+            console.log(error)
+            res.sendStatus(400);
+        }
+        else
+        {
+            // If there was no error, perform a SELECT * on bsg_people
+            query2 = `SELECT * FROM Addresses;`;
+            db.pool.query(query2, function(error, rows, fields){
+
+                // If there was an error on the second query, send a 400
+                if (error) {
+                    
+                    // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
+                    console.log(error);
+                    res.sendStatus(400);
+                }
+                // If all went well, send the results of the query back.
+                else
+                {
+                    res.send(rows);
+                }
+            })
+        }
+    })
+});
+
+// ADDRESSES PAGE END
 
 
 
 // CUSTOMERS PAGE START
-
 
 app.get('/customers', function(req, res)
 {  

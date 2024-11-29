@@ -32,3 +32,31 @@
         {{/each}}
     </tbody>
 </table>
+
+{{!-- Form to add a record to the table  --}}
+<h2>Add a new address</h2>
+<p>To add a new address, please enter their information below and click 'Submit'!</p>
+<form id="add-address-form-ajax">
+    <label for="input-customerID">CustomerID: </label>
+    <input type="number" name="input-customerID" id="input-customerID">
+    
+    <label for="input-streetAddress">Street Address: </label>
+    <input type="text" name="input-Street Address" id="input-streetAddress">
+
+    <label for="input-unit">Unit: </label>
+    <input type="text" name="input-unit" id="input-unit">
+
+    <label for="input-city">City: </label>
+    <input type="text" name="input-city" id="input-city">
+
+    <label for="input-state">State: </label>
+    <input type="text" name="input-state" id="input-state">
+
+    <label for="input-postalCode">Postal Code: </label>
+    <input type="number" name="input-postalCode" id="input-postalCode">
+
+    <input type="submit">
+</form>
+
+{{!-- Embed our javascript to handle the DOM manipulation and AJAX request --}}
+<script src="./js/add_address.js"></script>
