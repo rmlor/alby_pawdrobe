@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchOrders();                                                      //Orders table
     populateDropdown('/api/dogs', 'dogID', 'id', 'name');               //dogID for Orders management
     populateDropdown('/api/addresses', 'addressID', 'id', 'label');     //addressID for Orders management
-    populateDropdown('/api/products', 'productID', 'id', 'name');       //productID for Order_Products management
+    populateDropdown('/api/drop/products', 'productID', 'id', 'name');       //productID for Order_Products management
 });
 
 /* 
@@ -271,7 +271,7 @@ function createOrderProduct() {
 
     // Extract and display current orderID
     const orderID = document.getElementById("manageOrderID").textContent;
-    
+
     // Get form data
     const formData = new FormData(form);
     const orderProductData = {
@@ -368,7 +368,7 @@ function updateOrderProduct(orderProductData) {
     const productDropdown = form.querySelector("#productID");
 
     // GET route for products
-    fetch("/api/products")
+    fetch("/api/drop/products")
         // Handle API response
         .then((response) => {
             if (!response.ok) {
