@@ -61,7 +61,31 @@ app.get('/api/dogs', (req, res) => {
 });
 
 // Products
+
 app.get('/api/products', (req, res) => {
+    const query = `
+        SELECT 
+            productID, 
+            productName, 
+            productDescription, 
+            productType, 
+            productColorBase, 
+            productColorStyle, 
+            productLiningMaterial, 
+            productFillingMaterial, 
+            productBasePrice
+        FROM Products`;
+
+    db.pool.query(query, (error, results) => {
+        if (error) {
+            return res.status(500).json({error: "Failed to fetch products"}); 
+        }
+        res.json(results); 
+    });
+});
+
+
+app.get('/api/drop/products', (req, res) => {
     const query = `
         SELECT 
             productID AS id, 
@@ -77,14 +101,50 @@ app.get('/api/products', (req, res) => {
     });
 });
 
+app.post('/api/products/add', (req, res) => {            
+    console.log('Payload received:', req.body);    
+    const {
+        productName, productDescription, productType, 
+        productColorBase, productColorStyle, 
+        productLiningMaterial, productFillingMaterial, productBasePrice
+    } = req.body;
+
+    const query = `
+        INSERT INTO Products (productName, productDescription, productType, productColorBase, productColorStyle, productLiningMaterial, productFillingMaterial, productBasePrice)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    db.pool.query(query,
+                [productName, productDescription, productType, productColorBase, productColorStyle, productLiningMaterial, productFillingMaterial || null, productBasePrice],
+                (error, results) => {
+        if (error) {
+            return res.status(500).json({error: "Failed to add product"});
+        }
+        res.status(201).json({message: "Product added successfully"});
+        }
+    );
+});
+
 // GET - Orders
 app.get('/api/orders', (req, res) => {
     const query = `
         SELECT 
-            orderID, dogID, addressID,
-            orderDate, orderGiftNote, orderCustomRequest,
-            orderStatus, orderShippedDate, orderDeliveredDate
-        FROM Orders`;
+            o.orderID,
+            c.customerID,
+            d.dogID,
+            a.addressID,
+            c.customerName,
+            d.dogName,
+            o.orderDate,
+            o.orderGiftNote,
+            o.orderCustomRequest,
+            o.orderStatus,
+            o.orderShippedDate,
+            o.orderDeliveredDate
+        FROM Orders o
+        LEFT JOIN Dogs d ON o.dogID = d.dogID
+        LEFT JOIN Customers c ON d.customerID = c.customerID
+        LEFT JOIN Addresses a ON o.addressID = a.addressID;`;
     
     db.pool.query(query, (error, results) => {
         if (error) {
@@ -292,7 +352,7 @@ app.get('/dogs', (req, res) => {
 });
 
 app.get('/addresses', (req, res) => {
-    const query = `SELECT addressID AS id, CONCAT(streetAddress, ', ', city) AS label FROM Addresses`;
+    const query = `SELECT * FROM Addresses`;
     
     db.pool.query(query, (error, results) => {
         if (error) {
@@ -304,18 +364,35 @@ app.get('/addresses', (req, res) => {
 });
 
 app.get('/products', (req, res) => {
-    const query = `SELECT productID AS id, productName AS name FROM Products`;
+    const query = `SELECT * FROM Products`;
     
     db.pool.query(query, (error, results) => {
         if (error) {
             console.error("Error fetching products:", error);
             return res.status(500).json({error: "Failed to fetch products"});
         }
-        res.json(results);
+        res.render('products', {data: results});
     });
 });
 app.get('/orders', (req, res) => {
-    const query = `SELECT * FROM Orders`;
+    const query = `
+        SELECT 
+            o.orderID,
+            c.customerID,
+            d.dogID,
+            a.addressID,
+            c.customerName,
+            d.dogName,
+            o.orderDate,
+            o.orderGiftNote,
+            o.orderCustomRequest,
+            o.orderStatus,
+            o.orderShippedDate,
+            o.orderDeliveredDate
+        FROM Orders o
+        LEFT JOIN Dogs d ON o.dogID = d.dogID
+        LEFT JOIN Customers c ON d.customerID = c.customerID
+        LEFT JOIN Addresses a ON o.addressID = a.addressID;`;
     
     db.pool.query(query, (error, results) => {
         if (error) {
