@@ -1,91 +1,53 @@
-//Orders.js: Handles Orders and Order_Products
+//orders.js: Handles Orders and Order_Products
 
 /*
-    DOM manipulation
+    DOM Manipulation
 */
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener('DOMContentLoaded', () => {
     // DOM elements
-    const ordersTable = document.getElementById('orders-table');
-    const addOrderModal = document.getElementById('add-order-modal');
     const addOrderForm = document.getElementById('add-order-form');
-    const updateOrderModal = document.getElementById('update-order-modal');
-
-    const orderProductsModal = document.getElementById('order-products-modal');
-    const orderProductsTable = document.getElementById('order-products-table');
-    const addOrderProductForm = document.getElementById('add-order-product-form');
+    const addOrderProductForm = document.getElementById('add-order-product-form');;
+    const updateOrderForm = document.getElementById('update-order-form');
     const updateOrderProductForm = document.getElementById('update-order-product-form');
 
-    // Error checking for missing elements
-    if (!ordersTable) console.error("ordersTable element not found!");
-    if (!addOrderModal) console.error("addOrderModal element not found!");
-    if (!addOrderForm) console.error("addOrderForm element not found!");
+    const addOrderProductTitle = document.getElementById("add-order-product-title");
+    const updateOrderProductTitle = document.getElementById("update-order-product-title");
+    const addOrderModal = document.getElementById('add-order-modal');
+    const updateOrderModal = document.getElementById('update-order-modal')
 
-    if (!orderProductsTable) console.error("orderProductsTable element not found!");
-    if (!orderProductsModal) console.error("orderProductsModal element not found!");
-    if (!addOrderProductForm) console.error("addOrderProductForm element not found!");
-    if (!updateOrderProductForm) console.error("updateOrderProductForm element not found!");
-
-    // Initialize event listeners if elements exist
-    document.getElementById('add-order-button')?.addEventListener('click', () => openModal(addOrderModal));
+    // Event Listeners - Handle Static Buttons
+    document.getElementById('add-order-button')?.addEventListener('click', () => {
+        openModal(addOrderModal);
+    });
     document.getElementById('add-order-product-button')?.addEventListener('click', () => {
         showForm(addOrderProductForm);
-        showTitle(document.getElementById("add-order-product-title"));
-    });
-
-    document.addEventListener("DOMContentLoaded", () => {
-        // Other initialization code...
-    
-        // Attach click event to "Manage" buttons
-        document.querySelectorAll(".manage-button").forEach((button) => {
-            button.addEventListener("click", () => {
-                const orderID = button.getAttribute("data-order-id");
-                fetchOrderProducts(orderID); // Call fetchOrderProducts with the correct orderID
-            });
-        });
-    });
-    document.querySelectorAll(".update-button").forEach((button) => {
-        button.addEventListener("click", (e) => {
-            const row = e.target.closest("tr");
-            const orderID = row.dataset.value;
-            console.log("Order ID from row:", orderID); // Should log the correct ID
-            if (orderID) {
-                updateOrderModal(orderID);
-            } else {
-                console.error("No orderID found for update!");
-            }
-        });
+        showTitle(addOrderProductTitle);
     });
     document.getElementById('cancel-add-order').addEventListener('click', () => {
-        const addOrderForm = document.getElementById('add-order-form');
-        const addOrderModal = document.getElementById('add-order-modal');
-    
-        // Reset the form fields
         addOrderForm.reset();
-    
-        // Close the modal
         closeModal(addOrderModal);
     });
     document.getElementById('cancel-update-order').addEventListener('click', () => {
-        const updateOrderForm = document.getElementById('update-order-form');
-        const updateOrderModal = document.getElementById('update-order-modal');
-    
-        // Reset the form fields
         updateOrderForm.reset();
-    
-        // Close the modal
         closeModal(updateOrderModal);
     });
-
-    document.getElementById('update-order-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        updateOrder(); // Submit the update
+    document.getElementById('cancel-add-order-product').addEventListener('click', () => {
+        addOrderProductForm.reset();
+        hideForm(addOrderProductForm)
+        hideTitle(addOrderProductTitle)
+    });
+    document.getElementById('cancel-update-order-product').addEventListener('click', () => {
+        updateOrderProductForm.reset();
+        hideForm(updateOrderProductForm);
+        hideTitle(updateOrderProductTitle)
     });
 
     document.querySelectorAll('.close-modal').forEach(button => {
         button.addEventListener('click', () => closeModal(button.dataset.modalId));
     });
 
+    // Event Listeners - Handle Form Submissions
     addOrderForm?.addEventListener('submit', (e) => {
         e.preventDefault();
         createOrder();
@@ -94,41 +56,68 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
         createOrderProduct();
     });
+    updateOrderForm?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        updateOrder();
+    });
+    updateOrderProductForm?.addEventListener('submit', (e) => {
+        e.preventDefault();
 
+        // Get form data
+        const orderProductID = document.querySelector("#orderProductID").value; 
     
+        // GET route for order product by ID
+        fetch(`/api/order-products/${orderProductID}`)
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch order product: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then((orderProductData) => {
+                updateOrderProduct(orderProductData); 
+            })
+            .catch((error) => {
+                console.error("Error fetching order product data:", error);
+            });
+    });
 
-
-    // Initialize orders and dropdowns
-    fetchOrders();
-    populateDropdown('/api/dogs', 'dogID', 'id', 'name'); // For Dog ID in Add Order form
-    populateDropdown('/api/addresses', 'addressID', 'id', 'label'); // For Address ID in Add Order form
-    populateDropdown('/api/products', 'productID', 'id', 'name'); // For Product ID in Add Order Product form
-    
+    // Load and display data
+    fetchOrders();                                                      //Orders table
+    populateDropdown('/api/dogs', 'dogID', 'id', 'name');               //dogID for Orders management
+    populateDropdown('/api/addresses', 'addressID', 'id', 'label');     //addressID for Orders management
+    populateDropdown('/api/products', 'productID', 'id', 'name');       //productID for Order_Products management
 });
 
 /* 
-    READ FUNCTIONS 
+    CRUD - READ FUNCTIONS 
 */
 
-// Fetch orders
+// Load and display all orders 
 function fetchOrders() {
-    fetch("/api/orders")
+    // GET route (orders)
+    fetch('/api/orders')
+        // Handle API response
         .then((response) => {
             if (!response.ok) {
                 throw new Error(`Failed to fetch orders: ${response.status} ${response.statusText}`);
             }
             return response.json();
         })
+        // Process and render orders data (API to TABLE)
         .then((data) => {
             const tbody = document.querySelector("#orders-table tbody");
-            tbody.innerHTML = ""; // Clear existing rows
+            tbody.innerHTML = ""; // Clear existing table rows
 
+            // Populate table rows
             data.forEach((item) => {
                 const row = document.createElement("tr");
                 row.innerHTML = `
                     <td>${item.orderID}</td>
                     <td>${item.dogID}</td>
                     <td>${item.addressID}</td>
+                    <td>${item.customerName}</td>
+                    <td>${item.dogName}</td>
                     <td>${new Date(item.orderDate).toLocaleDateString()}</td>
                     <td>${item.orderGiftNote || ""}</td>
                     <td>${item.orderCustomRequest || "None"}</td>
@@ -136,47 +125,62 @@ function fetchOrders() {
                     <td>${item.orderShippedDate ? new Date(item.orderShippedDate).toLocaleDateString() : "-"}</td>
                     <td>${item.orderDeliveredDate ? new Date(item.orderDeliveredDate).toLocaleDateString() : "-"}</td>
                     <td>
-                        <button class="manage-button" data-order-id="${item.orderID}">Manage</button>
+                        <button id="manage-order-button-${item.orderID}" data-order-id="${item.orderID}">Manage</button>
                     </td>
                     <td>
-                        <button class="update-button" data-order-id="${item.orderID}">Update</button>
-                        <button class="delete-button" data-order-id="${item.orderID}">Delete</button>
+                        <button id="update-order-button-${item.orderID}" data-order-id="${item.orderID}">Update</button>
+                        <button id="delete-order-button-${item.orderID}" data-order-id="${item.orderID}">Delete</button>
                     </td>
                 `;
                 tbody.appendChild(row);
 
-                // Add Event Listeners for Buttons
-                row.querySelector('.manage-button').addEventListener('click', () => fetchOrderProducts(item.orderID));
-                row.querySelector('.update-button').addEventListener('click', () => updateOrderModal(item.orderID));
-                row.querySelector('.delete-button').addEventListener('click', () => deleteOrder(item.orderID));
+                // Event listeners for row buttons
+                document
+                    .getElementById(`manage-order-button-${item.orderID}`)
+                    .addEventListener("click", () => fetchOrderProducts(item.orderID));
+
+                document
+                    .getElementById(`update-order-button-${item.orderID}`)
+                    .addEventListener("click", () => updateOrderModal(item.orderID));
+
+                document
+                    .getElementById(`delete-order-button-${item.orderID}`)
+                    .addEventListener("click", () => deleteOrder(item.orderID));
             });
         })
+        // Handle API error
         .catch((error) => {
             console.error("Error in fetchOrders:", error);
             alert("Error loading orders. Please try again.");
         });
 }
 
-// Fetch order products
+// Load and display all order products for a given order
 function fetchOrderProducts(orderID) {
+    // GET route (order products for given orderID)
     fetch(`/api/orders/${orderID}/products`)
+        // Handle API response
         .then((response) => {
             if (!response.ok) {
                 throw new Error(`Failed to fetch order products: ${response.status} ${response.statusText}`);
             }
             return response.json();
         })
+        // Process and render order products data (API to TABLE)
         .then((data) => {
             const tbody = document.querySelector("#order-products-table tbody");
             tbody.innerHTML = "";
 
+            // Extract and display row orderID
             document.getElementById("manageOrderID").textContent = orderID;
 
+            // Reset forms and titles in modal
             hideForm(document.getElementById("add-order-product-form"));
             hideForm(document.getElementById("update-order-product-form"));
             hideTitle(document.getElementById("add-order-product-title"));
             hideTitle(document.getElementById("update-order-product-title"));
 
+            // Populate table rows
             data.forEach((item) => {
                 const row = document.createElement("tr");
                 row.innerHTML = `
@@ -192,76 +196,69 @@ function fetchOrderProducts(orderID) {
                 `;
                 tbody.appendChild(row);
 
-                // Use the correct function
+                // Event listeners for row buttons
                 row.querySelector(".update-product-button").addEventListener("click", (e) => {
                     console.log("data-product:", e.target.getAttribute("data-product"));
                     const productData = e.target.getAttribute("data-product");
-                    if (!productData) {
-                        console.error("No product data found on button!");
-                        return;
-                    }
-                
                     const parsedProductData = JSON.parse(productData);
-                    updateOrderProduct(parsedProductData); // Call the function with parsed data
+                    updateOrderProduct(parsedProductData);
                 });
                 row.querySelector(".delete-product-button").addEventListener("click", () => {
                     deleteOrderProduct(item.orderProductID, orderID);
                 });
             });
 
+            // Display order products modal for given order 
             openModal("order-products-modal");
         })
+        // Handle API errors
         .catch((error) => {
             console.error("Error in fetchOrderProducts:", error);
             alert("Error loading order products. Please try again later.");
         });
 }
 /*
-    CREATE
+    CRUD - CREATE FUNCTIONS
 */
 
-// Add new order
+// Add a new order 
 function createOrder() {
     const addOrderModal = document.getElementById('add-order-modal');
-    const addOrderForm = document.getElementById('add-order-form'); // Get the form element
-    const formData = new FormData(addOrderForm); // Use the form element
+    const addOrderForm = document.getElementById('add-order-form'); 
+    
+    // Get form data
+    const formData = new FormData(addOrderForm); 
     const orderData = {
-        dogID: formData.get("dogID"),
-        addressID: formData.get("addressID"),
-        orderDate: formData.get("orderDate"),
-        orderGiftNote: formData.get("orderGiftNote") || null,
-        orderCustomRequest: formData.get("orderCustomRequest") || null,
-        orderStatus: formData.get("orderStatus"),
-        orderShippedDate: formData.get("orderShippedDate") || null,
-        orderDeliveredDate: formData.get("orderDeliveredDate") || null,
+        dogID: formData.get('dogID'),
+        addressID: formData.get('addressID'),
+        orderDate: formData.get('orderDate'),
+        orderGiftNote: formData.get('orderGiftNote') || null,
+        orderCustomRequest: formData.get('orderCustomRequest') || null,
+        orderStatus: formData.get('orderStatus'),
+        orderShippedDate: formData.get('orderShippedDate') || null,
+        orderDeliveredDate: formData.get('orderDeliveredDate') || null,
     };
 
-    console.log("Order Data:", orderData);
-
+    // POST route for new order
     fetch("/api/orders/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderData),
     })
+        // Handle API response
         .then((response) => {
             if (!response.ok) {
-                console.error(`Failed to create order: ${response.status}`);
                 throw new Error(`Failed to create order: ${response.status} ${response.statusText}`);
             }
             return response.json();
         })
+        // Process successfully created order
         .then((data) => {
-            console.log("Order created successfully:", data);
-
-            // Reset the form fields
             addOrderForm.reset();
-
-            // Close the modal
             closeModal(addOrderModal);
-
-            // Refresh the orders table
             fetchOrders();
         })
+        // Handle API error
         .catch((error) => {
             console.error("Error in createOrder:", error);
             alert("Failed to create the order. Please try again.");
@@ -271,13 +268,12 @@ function createOrder() {
 //Add new order product
 function createOrderProduct() {
     const form = document.getElementById('add-order-product-form');
-    if (!form) {
-        console.error("Form for adding order product not found!");
-        return;
-    }
-    const formData = new FormData(form);
-    const orderID = document.getElementById("manageOrderID").textContent; // Get the current order ID
 
+    // Extract and display current orderID
+    const orderID = document.getElementById("manageOrderID").textContent;
+    
+    // Get form data
+    const formData = new FormData(form);
     const orderProductData = {
         orderID: orderID,
         productID: formData.get("productID"),
@@ -285,22 +281,26 @@ function createOrderProduct() {
         orderProductSalePrice: parseFloat(formData.get("orderProductSalePrice")),
     };
 
+    // POST route for new order product
     fetch("/api/order-products/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderProductData),
     })
+        // Handle API response
         .then((response) => {
             if (!response.ok) {
                 throw new Error(`Failed to create order product: ${response.status} ${response.statusText}`);
             }
             return response.json();
         })
+        // Process successfully created order product
         .then(() => {
-            fetchOrderProducts(orderID); // Refresh the order products table
-            hideForm(form); // Hide the form after successful submission
-            form.reset(); // Reset the form fields
+            fetchOrderProducts(orderID); 
+            hideForm(form); 
+            form.reset(); 
         })
+        // Handle API error
         .catch((error) => {
             console.error("Error in createOrderProduct:", error);
             alert("Failed to create the order product. Please try again.");
@@ -308,19 +308,15 @@ function createOrderProduct() {
 }
 
 /*
-    UPDATE
+    CRUD - UPDATE FUNCTIONS
 */
 
-// Update an order
+// Update order by ID
 function updateOrder() {
     const form = document.getElementById('update-order-form');
-    const orderID = document.getElementById('orderID').value; // Retrieve hidden Order ID
+    const orderID = document.getElementById('orderID').value; 
 
-    if (!orderID) {
-        console.error("No Order ID provided for update!");
-        return;
-    }
-
+    // Get form data
     const formData = new FormData(form);
     const orderData = {
         addressID: formData.get("addressID"),
@@ -331,62 +327,60 @@ function updateOrder() {
         orderDeliveredDate: formData.get("orderDeliveredDate") || null,
     };
 
-    console.log("Updating order with data:", orderData);
-
+    // PUT route for order by ID
     fetch(`/api/orders/update/${orderID}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderData),
     })
+        // Handle API response
         .then((response) => {
             if (!response.ok) {
                 throw new Error(`Failed to update order: ${response.status} ${response.statusText}`);
             }
-            return response.text(); // Use `response.text()` if server doesn't send JSON
+            return response.text(); 
         })
+        // Process succesfully updated order
         .then(() => {
-            console.log("Order updated successfully");
-            closeModal('update-order-modal'); // Close the modal
-            fetchOrders(); // Refresh the orders table
+            fetchOrders(); 
+            closeModal('update-order-modal'); 
         })
+        // Handle API error
         .catch((error) => {
             console.error("Error updating order:", error);
             alert("Failed to update the order. Please try again.");
         });
 }
-// Update an order product
+
+// Update an order product by ID
 function updateOrderProduct(orderProductData) {
-    // Get the update form and modal elements
-    if (!orderProductData) {
-        console.error("updateOrderProduct called without orderProductData!");
-        return;
-    }
-    console.log("orderProductData:", orderProductData);
     const form = document.getElementById("update-order-product-form");
     const modal = document.getElementById("order-products-modal");
 
-    // Populate the form fields with the provided orderProductData
-    form.querySelector("#orderProductID").value = orderProductData.orderProductID; // Hidden input for ID
+    // Get form data - populate form fields
+    form.querySelector("#orderProductID").value = orderProductData.orderProductID; 
     form.querySelector("#updateOrderProductRequest").value = orderProductData.orderProductRequest || "";
     form.querySelector("#updateOrderProductSalePrice").value =
         orderProductData.orderProductSalePrice !== null && orderProductData.orderProductSalePrice !== undefined
-            ? orderProductData.orderProductSalePrice.toFixed(2)
-            : "";
-
-    // Populate the product dropdown dynamically
+        ? orderProductData.orderProductSalePrice.toFixed(2)
+        : "";
+    // Get form data - populate dropdown
     const productDropdown = form.querySelector("#productID");
 
+    // GET route for products
     fetch("/api/products")
+        // Handle API response
         .then((response) => {
             if (!response.ok) {
                 throw new Error(`Failed to fetch products: ${response.status} ${response.statusText}`);
             }
             return response.json();
         })
+        // Process data for product dropdown
         .then((products) => {
-            console.log("Fetched products:", products); // Add this debug log
             productDropdown.innerHTML = '<option value="">Select a Product</option>';
     
+            // Populate dropdown options
             products.forEach((product) => {
                 const option = document.createElement("option");
                 option.value = product.id;
@@ -394,95 +388,100 @@ function updateOrderProduct(orderProductData) {
                 if (product.id === orderProductData.productID) {
                     option.selected = true; // Pre-select the product in the dropdown
                 }
-
                 productDropdown.appendChild(option);
             });
-
-            showForm(form); // Display the form after dropdown is populated
+ 
+            // Display form
+            showForm(form); 
             showTitle(document.getElementById("update-order-product-title"));
         })
+        // Handle API error
         .catch((error) => {
             console.error("Error populating product dropdown:", error);
             alert("Failed to load product options. Please try again.");
         });
 
-    // Add event listener to handle form submission (update logic)
+    // Process form submission
     form.onsubmit = (e) => {
-        e.preventDefault(); // Prevent default form submission behavior
+        e.preventDefault(); 
     
+        // Get form data
         const updatedOrderProductData = {
             productID: form.querySelector("#productID").value,
             orderProductRequest: form.querySelector("#updateOrderProductRequest").value || null,
             orderProductSalePrice: parseFloat(form.querySelector("#updateOrderProductSalePrice").value),
         };
-    
-        // Get the orderProductID from the form
         const orderProductID = form.querySelector("#orderProductID").value;
-    
-        if (!orderProductID) {
-            console.error("orderProductID is undefined. Cannot update.");
-            return;
-        }
-    
-        // Send the update request to the server
+
+        // PUT route for order product by ID
         fetch(`/api/order-products/update/${orderProductID}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(updatedOrderProductData),
         })
+            // Handle API response
             .then((response) => {
                 if (!response.ok) {
                     throw new Error(`Failed to update order product: ${response.status} ${response.statusText}`);
                 }
                 return response.text(); // Use response.text() if no JSON is returned
             })
+            // Process successfully updated order product
             .then(() => {
-                const orderID = document.getElementById("manageOrderID").textContent; // Get the current order ID
-                fetchOrderProducts(orderID); // Refresh the products table
-                closeModal(modal); // Close the modal after successful update
+                const orderID = document.getElementById("manageOrderID").textContent; 
+                fetchOrderProducts(orderID); 
+                closeModal(modal); //
             })
+            // Handle API error
             .catch((error) => {
                 console.error("Error updating order product:", error);
                 alert("Failed to update the order product. Please try again.");
             });
     };
-    
-    
 }
 /*
-    DELETE
+    CRUD - DELETE FUNCTIONS
 */
 
-// Delete an order
+// Delete an order by ID - confirmation message
 function deleteOrder(orderID) {
     if (confirm("Are you sure you want to delete this order?")) {
+        // DELETE route for order by ID
         fetch(`/api/orders/delete/${orderID}`, { method: "DELETE" })
+            // Handle API response
             .then((response) => {
                 if (!response.ok) {
                     throw new Error(`Failed to delete order: ${response.status} ${response.statusText}`);
                 }
             })
+            // Handle successfully deleted order
             .then(() => {
-                fetchOrders(); // Refresh the orders table
+                fetchOrders(); 
             })
+            // Handle API error
             .catch((error) => {
                 console.error("Error in deleteOrder:", error);
                 alert("Failed to delete the order. Please try again.");
             });
     }
 }
-//Delete an order product
+
+//Delete an order product by ID - confirmation message
 function deleteOrderProduct(orderProductID, orderID) {
     if (confirm("Are you sure you want to delete this order product?")) {
+        // DELETE route for order product by ID
         fetch(`/api/order-products/delete/${orderProductID}`, { method: "DELETE" })
+            // Handle API response
             .then((response) => {
                 if (!response.ok) {
                     throw new Error(`Failed to delete order product: ${response.status} ${response.statusText}`);
                 }
             })
+            // Process successfully deleted order product
             .then(() => {
-                fetchOrderProducts(orderID); // Refresh the order products table
+                fetchOrderProducts(orderID);
             })
+            // Handle API error
             .catch((error) => {
                 console.error("Error in deleteOrderProduct:", error);
                 alert("Failed to delete the order product. Please try again.");
@@ -491,76 +490,61 @@ function deleteOrderProduct(orderProductID, orderID) {
 }
 
 /*
-    MODAL MANAGEMENT
+    HELPER FUNCTIONS - DROPDOWNS
 */
 
-// Open Modal
-function openModal(modal) {
-    if (typeof modal === "string") {
-        modal = document.getElementById(modal);
-    }
-    if (!modal) {
-        console.error("Modal element not found!");
-        return;
-    }
-    modal.style.display = "block";
-    modal.classList.add("is-active");
+function populateDropdown(endpoint, dropdownID, valueKey, textKey) {
+    const dropdown = document.getElementById(dropdownID);
+
+    // GET route for dropdown data
+    fetch(endpoint)
+        // Handle API response
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Failed to fetch data from ${endpoint}: ${response.status} ${response.statusText}`);
+            }
+            return response.json();
+        })
+        // Process dropdown data
+        .then(data => {
+            dropdown.innerHTML = '<option value="">Select an option</option>';
+
+            // Populate dropdown with new options
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item[valueKey];
+                option.textContent = item[textKey];
+                dropdown.appendChild(option);
+            });
+        })
+        // Handle API error
+        .catch(error => {
+            console.error(`Error populating dropdown "${dropdownID}":`, error);
+        });
 }
 
-function closeModal(modal) {
-    if (typeof modal === "string") {
-        modal = document.getElementById(modal);
-    }
-    if (!modal) {
-        console.error("Modal element not found!");
-        return;
-    }
-    modal.style.display = "none";
-    modal.classList.remove("is-active");
+/*
+    HELPER FUNCTIONS - MODALS
+*/
 
-    const form = modal.querySelector('form');
-    if (form) {
-        form.reset();
-    }
-}
-
-// Show Form
-function showForm(form) {
-    form.classList.remove('is-hidden');
-}
-function hideForm(form) {
-    if (!form) {
-        console.error("Form not found to hide!");
-        return;
-    }
-    form.classList.add('is-hidden'); // Add a CSS class to hide the form
-}
-
-function hideTitle(title) {
-    title.style.display = 'none'; // Hide the title
-}
-
-function showTitle(title) {
-    title.style.display = 'block'; // Show the title
-}
-
+// Manage modal for update order form
 function updateOrderModal(orderID) {
-    console.log("updateOrderModal called with orderID:", orderID);
-
+    // GET route for order by ID
     fetch(`/api/orders/${orderID}`)
+        // Handle API response
         .then(response => {
             if (!response.ok) {
                 throw new Error(`Failed to fetch order: ${response.status} ${response.statusText}`);
             }
             return response.json();
         })
+        // Process data
         .then(orderData => {
-            console.log("Fetched Order Data:", orderData);
-
-            const modalTitle = document.querySelector('#update-order-modal .modal-content h2');
-            if (modalTitle) {
-                modalTitle.textContent = `Order #${orderData.orderID} - Update`;
+            const updateOrderIDSpan = document.getElementById('updateOrderID');
+            if (updateOrderIDSpan) {
+                updateOrderIDSpan.textContent = orderData.orderID; // Set the order ID
             }
+
             // Populate form fields
             document.getElementById('orderID').value = orderData.orderID;
             document.getElementById('updateGiftNote').value = orderData.orderGiftNote || '';
@@ -569,7 +553,7 @@ function updateOrderModal(orderID) {
             document.getElementById('updateShippedDate').value = orderData.orderShippedDate || '';
             document.getElementById('updateDeliveredDate').value = orderData.orderDeliveredDate || '';
 
-            // Dynamically populate the address dropdown without preselection
+            // Populate dropdown options
             console.log("Populating address dropdown");
             const addressDropdown = document.getElementById('updateAddressID');
             fetch('/api/addresses')
@@ -587,115 +571,97 @@ function updateOrderModal(orderID) {
                     });
                 });
 
+            // Display
             openModal('update-order-modal');
         })
+        // Handle API error
         .catch(error => {
             console.error("Error fetching order details:", error);
             alert("Failed to load order details. Please try again.");
         });
 }
+
+// Manage modal for order products where op.orderID = o.orderID
 function orderProductModal(orderProductID, orderID) {
+    // GET route for order product by ID
     fetch(`/api/order-products/${orderProductID}`)
+        // Handle API response
         .then((response) => {
             if (!response.ok) {
                 throw new Error(`Failed to fetch order product: ${response.status} ${response.statusText}`);
             }
             return response.json();
         })
+        // Process data
         .then((data) => {
-            // Populate the form dynamically
             const form = document.getElementById("update-order-product-form");
             form.innerHTML = ``;
 
-            // Attach form submission handler
             form.onsubmit = (e) => {
                 e.preventDefault();
-                updateOrderProduct(orderProductID, orderID); // Call the update function
+                updateOrderProduct(orderProductID, orderID); 
             };
 
-            // Show the form within the modal
+            // Display
             showForm(form);
         })
+        // Handle API error
         .catch((error) => {
             console.error("Error fetching order product details:", error);
             alert("Failed to load order product details. Please try again later.");
         });
 }
-function populateDropdown(endpoint, dropdownID, valueKey, textKey) {
-    const dropdown = document.getElementById(dropdownID);
 
-    if (!dropdown) {
-        console.error(`Dropdown with ID "${dropdownID}" not found!`);
+/*
+    BASIC - MODAL MANAGEMENT
+*/
+
+// Open Modal
+function openModal(modal) {
+    if (typeof modal === "string") {
+        modal = document.getElementById(modal);
+    }
+    if (!modal) {
+        console.error("Modal element not found!");
         return;
     }
-
-    // Fetch data from the server
-    fetch(endpoint)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Failed to fetch data from ${endpoint}: ${response.status} ${response.statusText}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log(`Data fetched for ${dropdownID}:`, data); // Add this line
-            // Clear existing options
-            dropdown.innerHTML = '<option value="">Select an option</option>';
-
-            // Populate dropdown with new options
-            data.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item[valueKey];
-                option.textContent = item[textKey];
-                dropdown.appendChild(option);
-            });
-        })
-        .catch(error => {
-            console.error(`Error populating dropdown "${dropdownID}":`, error);
-        });
+    modal.style.display = "block";
+    modal.classList.add("is-active");
 }
 
+// Close modal
+function closeModal(modal) {
+    if (typeof modal === "string") {
+        modal = document.getElementById(modal);
+    }
+    if (!modal) {
+        console.error("Modal element not found!");
+        return;
+    }
+    modal.style.display = "none";
+    modal.classList.remove("is-active");
+}
 
-function populateUpdateOrderProductForm(productData) {
-    const form = document.getElementById("update-order-product-form");
+/*
+    BASIC - FORM MANAGEMENT
+*/
 
-    form.querySelector("#orderProductID").value = productData.orderProductID; // Ensure this value is set
-    form.querySelector("#updateOrderProductRequest").value = productData.orderProductRequest || "";
-    form.querySelector("#updateOrderProductSalePrice").value =
-        productData.orderProductSalePrice !== null && productData.orderProductSalePrice !== undefined
-            ? productData.orderProductSalePrice.toFixed(2)
-            : "";
+// Show form
+function showForm(form) {
+    form.classList.remove('is-hidden');
+}
 
-    // Dynamically populate the productID dropdown
-    const productDropdown = form.querySelector("#productID");
+//Hide form
+function hideForm(form) {
+    form.classList.add('is-hidden'); // Add a CSS class to hide the form
+}
 
-    fetch("/api/products")
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error(`Failed to fetch products: ${response.status} ${response.statusText}`);
-            }
-            return response.json();
-        })
-        .then((products) => {
-            productDropdown.innerHTML = '<option value="">Select a Product</option>'; // Clear existing options
+//Show Title
+function showTitle(title) {
+    title.style.display = 'block'; // Show the title
+}
 
-            products.forEach((product) => {
-                const option = document.createElement("option");
-                option.value = product.id; // Match the value with the database's productID
-                option.textContent = product.name; // Display product name
-                if (product.id === productData.productID) {
-                    option.selected = true; // Pre-select the product in the dropdown
-                }
-                productDropdown.appendChild(option);
-            });
-
-            showForm(form); // Display the form after dropdown is populated
-            showTitle(document.getElementById("update-order-product-title"));
-        })
-        .catch((error) => {
-            console.error("Error populating product dropdown:", error);
-            alert("Failed to load product options. Please try again.");
-        });
-
-    openModal("order-products-modal");
+//Hide Title
+function hideTitle(title) {
+    title.style.display = 'none'; // Hide the title
 }
