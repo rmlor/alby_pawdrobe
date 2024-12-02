@@ -1,3 +1,19 @@
+/*
+Citation for Email Validation Helper Function
+Date: December 2, 2024
+Adapted from: StackOverflow
+Source URL: https://stackoverflow.com/questions/46155/how-can-i-validate-an-email-address-in-javascript
+Adaptation Details: The original regex pattern for comprehensive email validation was retained and the implementation was simplified by wrapping it in an ES6 arrow function for readability and modularity.
+*/
+
+/*
+Citation for Phone Number Validation Helper Function
+Date: December 2, 2024
+Adapted from: StackOverflow
+Source URL: https://stackoverflow.com/questions/4338267/validate-phone-number-with-javascript
+Adaptation Details: The original regex pattern for comprehensive phone validation was retained and the implementation was simplified by wrapping it in an ES6 arrow function for readability and modularity.
+*/
+
 // Validation Functions
 const validateEmail = (email) => {
     const emailRegex = /^(([^<>()\[\]\.,;:\s@"]+(\.[^<>()\[\]\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
