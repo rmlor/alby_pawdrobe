@@ -15,6 +15,7 @@ function deleteCustomer(customerID) {
 
           // Add the new data to the table
           deleteRow(customerID);
+          alert("Customer deleted successfully!");
 
       }
       else if (xhttp.readyState == 4 && xhttp.status != 204) {
