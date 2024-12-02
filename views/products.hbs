@@ -3,12 +3,13 @@
 <head>
     <meta charset="utf-8">
     <title>Product Catalog</title>
+    <link rel="stylesheet" type="text/css" href="/css/modal.css">
 </head>
 <body>
     <h1>Product Catalog - Where Couture Meets Catalog</h1>
     <p>Upkeep an Alby-approved product catalog, ensuring every pup's pawdrobe stays comfy and trendy.</p>
 
-    <table border="1">
+    <table id="products-table" border="1">
         <thead>
             <tr>
                 <th>Product ID</th>
@@ -20,11 +21,12 @@
                 <th>Lining Material</th>
                 <th>Filling Material</th>
                 <th>Base Price</th>
+                <th>Product Tools</th>
             </tr>
         </thead>
         <tbody>
             {{#each data}}
-            <tr>
+            <tr data-value="{{this.productID}}">
                 <td>{{this.productID}}</td>
                 <td>{{this.productName}}</td>
                 <td>{{this.productDescription}}</td>
@@ -34,9 +36,153 @@
                 <td>{{this.productLiningMaterial}}</td>
                 <td>{{this.productFillingMaterial}}</td>
                 <td>{{this.productBasePrice}}</td>
+                <td>
+                    <button id="update-product-button-{{this.productID}}" data-product-id="{{this.productID}}">Update</button>
+                    <button id="delete-product-button-{{this.productID}}" data-product-id="{{this.productID}})">Delete</button>
+                </td>
             </tr>
             {{/each}}
         </tbody>
     </table>
+
+    <!-- Add Product Button -->
+    <button id="add-product-button">Add New Product</button>
+
+    <!-- Add Product Modal -->
+    <div id="add-product-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" data-modal-id="add-product-modal">&times;</span>
+            <h2>Add New Product</h2>
+            <form id="add-product-form">
+                <label for="productName">Name:</label>
+                <input type="text" id="productName" name="productName" required/>
+
+                <label for="productDescription">Description:</label>
+                <input type="text" id="productDescription" name="productDescription" required/>
+
+                <label for="productType">Category:</label>
+                <select id="productType" name="productType" required>
+                    <option value="Bandana">Bandana</option>
+                    <option value="Sock">Sock</option>
+                    <option value="Shirt">Shirt</option>
+                    <option value="Sweater">Sweater</option>
+                    <option value="Jacket">Jacket</option>
+                    <option value="Hoodie">Hoodie</option>
+                    <option value="Coat">Coat</option>
+                    <option value="Pajama">Pajama</option>
+                    <option value="Tuxedo">Tuxedo</option>
+                    <option value="Dress">Dress</option>
+                    <option value="Bodysuit">Bodysuit</option>
+                </select>
+
+                <label for="productColorBase">Color Base:</label>
+                <input type="text" id="productColorBase" name="productColorBase" required/>
+
+                <label for="productColorStyle">Color Style:</label>
+                <select id="productColorStyle" name="productColorStyle">
+                    <option value="Standard">Standard</option>
+                    <option value="Pastel">Pastel</option>
+                    <option value="Rich">Rich</option>
+                    <option value="Metallic">Metallic</option>
+                    <option value="Matte">Matte</option>
+                </select>
+
+                <label for="productLiningMaterial">Lining Material:</label>
+                <select id="productLiningMaterial" name="productLiningMaterial" required>
+                    <option value="Cotton">Cotton</option>
+                    <option value="Polyester">Polyester</option>
+                    <option value="Denim">Denim</option>
+                    <option value="Nylon">Nylon</option>
+                    <option value="Wool">Wool</option>
+                    <option value="Fleece">Fleece</option>
+                </select>
+
+                <label for="productFillingMaterial">Filling Material:</label>
+                <select id="productFillingMaterial" name="productFillingMaterial">
+                    <option value="">None</option>
+                    <option value="Polyester">Polyester</option>
+                    <option value="Down">Down</option>
+                    <option value="Cotton">Cotton</option>
+                </select>
+
+                <label for="productBasePrice">Base Price:</label>
+                <input type="number" id="productBasePrice" name="productBasePrice" required/>
+
+                <button type="submit">Add Product</button>
+                <button type="button" id="cancel-add-product">Cancel Product</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Update Product Modal -->
+    <div id="update-product-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" data-modal-id="update-product-modal">&times;</span>
+            <h2>Product #<span id="updateProductID"></span> - Update Product</h2>
+            <form id="update-product-form">
+                <input type="hidden" id="productID" name="productID">
+
+                <label for="updateProductName">Product Name:</label>
+                <input type="text" id="updateProductName" name="productName" required/>
+
+                <label for="updateProductDescription">Description</label>
+                <input type="text" id="updateProductDescription" name="productDescription" required/>
+
+                <label for="updateProductType">Category:</label>
+                <select id="updateProductType" name="productType" required>
+                    <option value="Bandana">Bandana</option>
+                    <option value="Sock">Sock</option>
+                    <option value="Shirt">Shirt</option>
+                    <option value="Sweater">Sweater</option>
+                    <option value="Jacket">Jacket</option>
+                    <option value="Hoodie">Hoodie</option>
+                    <option value="Coat">Coat</option>
+                    <option value="Pajama">Pajama</option>
+                    <option value="Tuxedo">Tuxedo</option>
+                    <option value="Dress">Dress</option>
+                    <option value="Bodysuit">Bodysuit</option>
+                </select>
+
+                <label for="updateProductColorBase">Color Base:</label>
+                <input type="text" id="updateProductColorBase" name="productColorBase" required/>
+
+                <label for="updateProductColorStyle">Color Style:</label>
+                <select id="updateProductColorStyle" name="productColorStyle">
+                    <option value="Standard">Standard</option>
+                    <option value="Pastel">Pastel</option>
+                    <option value="Rich">Rich</option>
+                    <option value="Metallic">Metallic</option>
+                    <option value="Matte">Matte</option>
+                </select>
+
+                <label for="updateProductLiningMaterial">Lining Material:</label>
+                <select id="updateProductLiningMaterial" name="productLiningMaterial" required>
+                    <option value="Cotton">Cotton</option>
+                    <option value="Polyester">Polyester</option>
+                    <option value="Denim">Denim</option>
+                    <option value="Nylon">Nylon</option>
+                    <option value="Wool">Wool</option>
+                    <option value="Fleece">Fleece</option>
+                </select>
+
+                <label for="updateProductFillingMaterial">Filling Material:</label>
+                <select id="updateProductFillingMaterial" name="productFillingMaterial">
+                    <option value=""></option>
+                    <option value="Polyester">Polyester</option>
+                    <option value="Down">Down</option>
+                    <option value="Cotton">Cotton</option>
+                </select>
+
+                <label for="updateProductBasePrice">Base Price:</label>
+                <input type="number" id="updateProductBasePrice" name="productBasePrice" required/>
+
+                <button type="submit">Save</button>
+                <button type="button" id="cancel-update-product">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JS source -->
+    <script src="/js/products.js"></script>
 </body>
 </html>
