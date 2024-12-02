@@ -84,8 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load and display data
     fetchOrders();                                                      //Orders table
-    populateDropdown('/api/dogs', 'dogID', 'id', 'name');               //dogID for Orders management
-    populateDropdown('/api/addresses', 'addressID', 'id', 'label');     //addressID for Orders management
+    populateDropdown('/api/drop/dogs', 'dogID', 'id', 'name');               //dogID for Orders management
+    populateDropdown('/api/drop/addresses', 'addressID', 'id', 'label');     //addressID for Orders management
     populateDropdown('/api/drop/products', 'productID', 'id', 'name');       //productID for Order_Products management
 });
 
@@ -324,13 +324,13 @@ function updateOrder() {
         orderCustomRequest: formData.get("orderCustomRequest") || null,
         orderStatus: formData.get("orderStatus"),
         orderShippedDate: formData.get("orderShippedDate") || null,
-        orderDeliveredDate: formData.get("orderDeliveredDate") || null,
+        orderDeliveredDate: formData.get("orderDeliveredDate") || null
     };
 
     // PUT route for order by ID
     fetch(`/api/orders/update/${orderID}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify(orderData),
     })
         // Handle API response
@@ -451,7 +451,7 @@ function deleteOrder(orderID) {
             // Handle API response
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error(`Failed to delete order: ${response.status} ${response.statusText}`);
+                    throw new Error("Failed to delete order: ${response.status} ${response.statusText}");
                 }
             })
             // Handle successfully deleted order
@@ -556,7 +556,7 @@ function updateOrderModal(orderID) {
             // Populate dropdown options
             console.log("Populating address dropdown");
             const addressDropdown = document.getElementById('updateAddressID');
-            fetch('/api/addresses')
+            fetch('/api/drop/addresses')
                 .then(response => response.json())
                 .then(data => {
                     addressDropdown.innerHTML = '<option value="">Select an option</option>';
