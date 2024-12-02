@@ -7,7 +7,7 @@
     <link rel="stylesheet" type="text/css" href="/css/modal.css">
 </head>
 <body>
-    <h1>Order Hub - Delivering Dreams</h1>
+    <h1>Order Hub - Unleashing Visions</h1>
     <p>Track order information, shipping details, and product customizations</p>
 
     <!-- Orders Table -->
@@ -17,6 +17,8 @@
                 <th>Order ID</th>
                 <th>Dog ID</th>
                 <th>Address ID</th>
+                <th>Customer Name</th>
+                <th>Dog Name</th>
                 <th>Order Date</th>
                 <th>Gift Note</th>
                 <th>Custom Request</th>
@@ -33,6 +35,8 @@
                 <td>{{this.orderID}}</td>
                 <td>{{this.dogID}}</td>
                 <td>{{this.addressID}}</td>
+                <td>{{this.customerName}}</td>
+                <td>{{this.dogName}}</td>
                 <td>{{this.orderDate}}</td>
                 <td>{{this.orderGiftNote}}</td>
                 <td>{{this.orderCustomRequest}}</td>
@@ -40,11 +44,11 @@
                 <td>{{this.orderShippedDate}}</td>
                 <td>{{this.orderDeliveredDate}}</td>
                 <td>
-                    <button class="manage-button" data-order-id="{{this.orderID}}">Manage</button>
+                    <button id="manage-order-button-${{item.orderID}}" data-order-id="${item.orderID}">Manage</button>
                 </td>
                 <td>
-                    <button class="update-button" data-order-id="{{this.orderID}}">Update</button>
-                    <button class="delete-button" onclick="deleteOrder({{this.orderID}})">Delete</button>
+                    <button id="update-order-button-{{this.orderID}}" data-order-id="{{this.orderID}}">Update</button>
+                    <button id="delete-order-button-{{this.orderID}}" data-order-id="{{this.orderID}}">Delete</button>
                 </td>
             </tr>
             {{/each}} 
@@ -104,10 +108,11 @@
         </div>
     </div>
 
+    <!-- Update Order Modal -->
     <div id="update-order-modal" class="modal">
         <div class="modal-content">
             <span class="close-modal" data-modal-id="update-order-modal">&times;</span>
-            <h2>Update Order</h2>
+            <h2>Order #<span id="updateOrderID"></span> - Update Order</h2>
             <form id="update-order-form">
                 <input type="hidden" id="orderID" name="orderID">
 
@@ -144,11 +149,12 @@
             </form>
         </div>
     </div>
+
     <!-- Manage Order Products Modal -->
     <div id="order-products-modal" class="modal">
         <div class="modal-content">
             <span class="close-modal" data-modal-id="order-products-modal">&times;</span>
-            <h2>Manage Products for Order ID: <span id="manageOrderID"></span></h2>
+            <h2>Order #<span id="manageOrderID"></span> - Order Products</h2>
 
             <!-- Order Products Table -->
             <table id="order-products-table" border="1">
@@ -159,15 +165,17 @@
                         <th>Product ID</th>
                         <th>Customization</th>
                         <th>Sale Price</th>
-                        <th>Actions</th>
+                        <th>Product Tools</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Populated dynamically by JavaScript -->
+                    <!-- Populated dynamically by JS -->
                 </tbody>
             </table>
 
+            <!-- Add New Order Product Button -->
             <button id="add-order-product-button">Add Order Product</button>
+
             <!-- Add New Order Product Form -->
             <div class="hidden">
                 <h3 id="add-order-product-title">Add Order Product</h3>
@@ -181,11 +189,12 @@
                     <label for="newOrderProductSalePrice">Sale Price:</label>
                     <input type="number" id="orderProductSalePrice" name="orderProductSalePrice" step="0.01" required />
 
-                    <button type="submit">Add Order Product</button>
-                    <button type="button" id="cancel-update-order-product">Cancel Order Product</button>
+                    <button type="submit">Add</button>
+                    <button type="button" id="cancel-add-order-product">Cancel</button>
                 </form>
             </div>
 
+            <!-- Update Order Product Form -->
             <div class="hidden">
                 <h3 id="update-order-product-title">Update Order Product</h3>
                 <form id="update-order-product-form">
@@ -209,6 +218,7 @@
         </div>
     </div>
 
+    <!-- JS source -->
     <script src="/js/orders.js"></script>
 </body>
 </html>
