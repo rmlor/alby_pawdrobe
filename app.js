@@ -22,11 +22,11 @@ app.engine('.hbs', engine({extname: ".hbs"}));
 app.set('view engine', '.hbs');                 
 
 /*
-    API Routes - Provide JSON Data
+    API ROUTES - Dynamic Dropdowns (JSON DATA)
 */
 
-// Addresses
-app.get('/api/addresses', (req, res) => {
+// Addresses for Orders forms
+app.get('/api/drop/addresses', (req, res) => {
     const query= `
         SELECT 
             addressID AS id, 
@@ -43,8 +43,8 @@ app.get('/api/addresses', (req, res) => {
     });
 });
 
-// Dogs
-app.get('/api/dogs', (req, res) => {
+// Dogs for Orders forms
+app.get('/api/drop/dogs', (req, res) => {
     const query = `
         SELECT 
             dogID AS id, 
@@ -60,8 +60,29 @@ app.get('/api/dogs', (req, res) => {
     });
 });
 
-// Products
+// Products for Order_Products forms
+app.get('/api/drop/products', (req, res) => {
+    const query = `
+        SELECT 
+            productID AS id, 
+            CONCAT(productID, ': ', productName) 
+            AS name 
+        FROM Products`;
 
+    db.pool.query(query, (error, results) => {
+        if (error) {
+            return res.status(500).json({error: "Failed to fetch products"}); 
+        }
+        res.json(results); 
+    });
+});
+
+
+/*
+    API ROUTES - Products (JSON DATA)
+*/
+
+// GET - Products
 app.get('/api/products', (req, res) => {
     const query = `
         SELECT 
@@ -84,25 +105,27 @@ app.get('/api/products', (req, res) => {
     });
 });
 
-
-app.get('/api/drop/products', (req, res) => {
+// GET - product by ID (Products)
+app.get('/api/products/:productID', (req, res) => {
+    const {productID} = req.params;
     const query = `
-        SELECT 
-            productID AS id, 
-            CONCAT(productID, ': ', productName) 
-            AS name 
-        FROM Products`;
+        SELECT * 
+        FROM Products
+        WHERE productID = ?`;
 
-    db.pool.query(query, (error, results) => {
+    db.pool.query(query, [productID], (error, results) => {
         if (error) {
-            return res.status(500).json({error: "Failed to fetch products"}); 
+            return res.status(500).json({error: "Failed to fetch product"});
+        } else if (results.length === 0) {
+            return res.status(404).json({ error: "Product not found" });
+        } else {
+            res.json(results[0]);
         }
-        res.json(results); 
     });
 });
 
-app.post('/api/products/add', (req, res) => {            
-    console.log('Payload received:', req.body);    
+// POST - new products (Products)
+app.post('/api/products/add', (req, res) => {          
     const {
         productName, productDescription, productType, 
         productColorBase, productColorStyle, 
@@ -124,6 +147,66 @@ app.post('/api/products/add', (req, res) => {
         }
     );
 });
+
+// PUT - product by ID (Products)
+app.put('/api/products/update/:productID', (req, res) => {       
+    const {productID} = req.params;
+    const {
+        productName, productDescription, productType, 
+        productColorBase, productColorStyle, 
+        productLiningMaterial, productFillingMaterial, productBasePrice
+    } = req.body;
+
+    console.log('Update Request for Product:', productID);
+    console.log('Update Data:', req.body);
+
+    const query = `
+        UPDATE Products
+        SET productName = ?, 
+            productDescription = ?, 
+            productType = ?, 
+            productColorBase = ?, 
+            productColorStyle = ?, 
+            productLiningMaterial = ?, 
+            productFillingMaterial = ?, 
+            productBasePrice = ?
+        WHERE productID = ?;`;
+
+    db.pool.query(query,
+                [productName, productDescription, productType, productColorBase, productColorStyle, productLiningMaterial, productFillingMaterial || null, productBasePrice, productID],
+                (error) => {
+        if (error) {
+            return res.status(500).json({error: "Failed to update product"});
+        }
+        res.status(200).json({ message: "Product updated successfully" }); 
+        }
+    );
+});
+
+// DELETE - product by ID (Products)
+app.delete('/api/products/delete/:productID', (req, res) => {
+    const {productID} = req.params;
+
+    console.log('Delete Request for Product ID:', productID);
+
+    const query = `DELETE FROM Products WHERE productID = ?`;
+
+    db.pool.query(query, [productID], (error, results) => {
+        if (error) {
+            console.error("Error deleting product:", error); 
+            return res.status(500).json({error: "Failed to delete product"});
+        } else if (results.affectedRows === 0) {
+            console.warn("Product not found:", productID); // Debugging log
+            return res.status(404).json({error: "Product not found"});
+        } else {
+            res.status(200).json({message: "Product deleted successfully"});
+        }
+    });
+});
+
+/*
+    API ROUTES - Orders (JSON DATA)
+*/
 
 // GET - Orders
 app.get('/api/orders', (req, res) => {
@@ -239,6 +322,10 @@ app.delete('/api/orders/delete/:orderID', (req, res) => {
     });
 });
 
+/*
+    API ROUTES - Order_Products (JSON DATA)
+*/
+
 // GET - Order_Products where orderID = ? (Order_Products)
 app.get('/api/orders/:orderID/products', (req, res) => {
     const { orderID } = req.params;
@@ -331,7 +418,7 @@ app.delete('/api/order-products/delete/:orderProductID', (req, res) => {
 });
 
 /* 
-    UI Routes - Render Pages
+    UI ROUTES - Render Pages
 */
 
 // Home page 
@@ -377,18 +464,10 @@ app.get('/products', (req, res) => {
 app.get('/orders', (req, res) => {
     const query = `
         SELECT 
-            o.orderID,
-            c.customerID,
-            d.dogID,
-            a.addressID,
-            c.customerName,
-            d.dogName,
-            o.orderDate,
-            o.orderGiftNote,
-            o.orderCustomRequest,
-            o.orderStatus,
-            o.orderShippedDate,
-            o.orderDeliveredDate
+            o.orderID, c.customerID, d.dogID, a.addressID,
+            c.customerName, d.dogName, o.orderDate,
+            o.orderGiftNote, o.orderCustomRequest, o.orderStatus,
+            o.orderShippedDate, o.orderDeliveredDate
         FROM Orders o
         LEFT JOIN Dogs d ON o.dogID = d.dogID
         LEFT JOIN Customers c ON d.customerID = c.customerID
