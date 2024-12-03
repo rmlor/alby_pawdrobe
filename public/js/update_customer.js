@@ -1,9 +1,37 @@
+/*
+Citation for Email Validation Helper Function
+Date: December 2, 2024
+Adapted from: StackOverflow
+Source URL: https://stackoverflow.com/questions/46155/how-can-i-validate-an-email-address-in-javascript
+Adaptation Details: The original regex pattern for comprehensive email validation was retained and the implementation was simplified by wrapping it in an ES6 arrow function for readability and modularity.
+*/
+
+/*
+Citation for Phone Number Validation Helper Function
+Date: December 2, 2024
+Adapted from: StackOverflow
+Source URL: https://stackoverflow.com/questions/4338267/validate-phone-number-with-javascript
+Adaptation Details: The original regex pattern for comprehensive phone validation was retained and the implementation was simplified by wrapping it in an ES6 arrow function for readability and modularity.
+*/
+
+// Validation Functions
+const validateEmail = (email) => {
+    const emailRegex = /^(([^<>()\[\]\.,;:\s@"]+(\.[^<>()\[\]\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return emailRegex.test(email);
+};
+
+const validatePhoneNumber = (phone) => {
+    const phoneRegex = /^(\(\d{3}\)|\d{3})(-|\s)?\d{3}(-|\s)\d{4}$/;
+    return phoneRegex.test(phone);
+};
+
+
 // Get the objects we need to modify
 let updateCustomerForm = document.getElementById('update-customer-form-ajax');
 
 // Modify the objects we need
 updateCustomerForm.addEventListener("submit", function (e) {
-   
+
     // Prevent the form from submitting
     e.preventDefault();
 
@@ -13,26 +41,37 @@ updateCustomerForm.addEventListener("submit", function (e) {
     let inputCustomerPhone = document.getElementById("input-customerPhone");
 
     // Get the values from the form fields
-    let customerNameValue = inputCustomerName.value;
-    let customerEmailValue = inputCustomerEmail.value;
-    let customerPhoneValue = inputCustomerPhone.value;
-    
-    // currently the database table for bsg_people does not allow updating values to NULL
-    // so we must abort if being bassed NULL for homeworld
 
-    if (isNaN(customerNameValue)) 
-    {
+    let customerNameValue = inputCustomerName.value.trim();
+    let customerEmailValue = inputCustomerEmail.value.trim();
+    let customerPhoneValue = inputCustomerPhone.value.trim();
+
+    // Validate inputs
+    if (!customerNameValue) {
+        alert("Customer name is required.");
         return;
     }
 
+    if (!validateEmail(customerEmailValue)) {
+        alert("Please enter a valid email address.");
+        return;
+    }
 
-    // Put our data we want to send in a javascript object
+    if (!validatePhoneNumber(customerPhoneValue)) {
+        alert("Please enter a valid phone number in the format 123-456-7890 or (123) 456-7890.");
+        return;
+    }
+
+    // Put our data we want to send in a JavaScript object
+
     let data = {
         customerName: customerNameValue,
         customerEmail: customerEmailValue,
         customerPhone: customerPhoneValue,
-    }
-    
+
+    };
+
+
     // Setup our AJAX request
     var xhttp = new XMLHttpRequest();
     xhttp.open("PUT", "/put-customer-ajax", true);
@@ -41,50 +80,59 @@ updateCustomerForm.addEventListener("submit", function (e) {
     // Tell our AJAX request how to resolve
     xhttp.onreadystatechange = () => {
         if (xhttp.readyState == 4 && xhttp.status == 200) {
-
-            // Add the new data to the table
+            // Update the table with new data
             updateRow(xhttp.response, customerNameValue);
 
-        }
-        else if (xhttp.readyState == 4 && xhttp.status != 200) {
-            console.log("There was an error with the input.")
-        }
-    }
+            // Show success confirmation message
+            alert("Customer updated successfully!");
 
-    console.log(JSON.stringify(data))
+            // Clear the form for the next transaction
+            inputCustomerEmail.value = '';
+            inputCustomerPhone.value = '';
+        } else if (xhttp.readyState == 4 && xhttp.status != 200) {
+            console.log("There was an error with the input.");
+        }
+    };
 
     // Send the request and wait for the response
     xhttp.send(JSON.stringify(data));
+});
 
-})
-
-
-function updateRow(data, customerID){
-    let parsedData = JSON.parse(data);
-
-    console.log(data, customerID)
-    
+// Pre-Populate Update Form with Current Row Info
+document.getElementById("mySelect").addEventListener("change", function () {
+    let selectedCustomerID = this.value;
     let table = document.getElementById("customer-table");
 
     for (let i = 0, row; row = table.rows[i]; i++) {
-       //iterate through rows
-       //rows would be accessed using the "row" variable assigned in the for loop
-       if (table.rows[i].getAttribute("data-value") == customerID) {
+        if (table.rows[i].getAttribute("data-value") == selectedCustomerID) {
+            let email = row.getElementsByTagName("td")[2].innerText;
+            let phone = row.getElementsByTagName("td")[3].innerText;
 
+            document.getElementById("input-customerEmail").value = email;
+            document.getElementById("input-customerPhone").value = phone;
+
+            break;
+        }
+    }
+});
+
+function updateRow(data, customerID) {
+    let parsedData = JSON.parse(data);
+    let table = document.getElementById("customer-table");
+
+    for (let i = 0, row; row = table.rows[i]; i++) {
+        if (table.rows[i].getAttribute("data-value") == customerID) {
             // Get the location of the row where we found the matching customer ID
             let updateRowIndex = table.getElementsByTagName("tr")[i];
 
-            // Get td of customerEmail value
+            // Update customerEmail in the table
             let td_email = updateRowIndex.getElementsByTagName("td")[2];
+            td_email.innerHTML = parsedData[0].customerEmail;
 
-            // Reassign customerEmail to our value we updated to
-            td_email.innerHTML = parsedData[0].customerEmail; 
-
-            // Get td of customerPhone value
+            // Update customerPhone in the table
             let td_phone = updateRowIndex.getElementsByTagName("td")[3];
-
-            // Reassign customerPhone to our value we updated to
-            td_phone.innerHTML = parsedData[0].customerPhone; 
-       }
+            td_phone.innerHTML = parsedData[0].customerPhone;
+        }
     }
 }
+
