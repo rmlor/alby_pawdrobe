@@ -54,17 +54,32 @@ app.get('/breeds', function(req, res)
 
 app.get('/addresses', function(req, res)
 {  
-    let selectAddresses = "SELECT * FROM Addresses;";                // Define our query
+    // Declare Query 1
+    let selectAddresses = "SELECT * FROM Addresses;";  
 
-    db.pool.query(selectAddresses, function(error, rows, fields){    // Execute the query
+    // Query 2 is the same in both cases
+    let selectCustomers = "SELECT * FROM Customers;";
 
-        res.render('addresses', {data: rows});                       // Render the index.hbs file, and also send the renderer
-    })                
+    // Run the 1st query
+    db.pool.query(selectAddresses, function(error, rows, fields){
+        
+        // Save the people
+        let address = rows;
+        
+        // Run the second query
+        db.pool.query(selectCustomers, (error, rows, fields) => {
+            
+            // Save the planets
+            let customers = rows;
+            return res.render('addresses', {data: address, customers: customers});
+        })               
+})
 });
 
 app.post('/add-address-ajax', function(req, res) 
 {
     // Capture the incoming data and parse it back to a JS object
+
     let data = req.body;
 
     // Capture NULL values
@@ -117,6 +132,23 @@ app.post('/add-address-ajax', function(req, res)
         }
     })
 });
+
+app.delete('/delete-address-ajax/', function(req,res,next){
+    let data = req.body;
+    let addressID = parseInt(data.id);
+    console.log(data)
+    let deleteAddress = `DELETE FROM Addresses WHERE addressID = ?`;
+    
+        // Run the 1st query
+        db.pool.query(deleteAddress, [addressID], function(error, rows, fields){
+        if (error) {
+            console.log(error);
+            res.sendStatus(400);
+        } else {
+            res.sendStatus(204);
+        }
+    
+    })});
 
 // ADDRESSES PAGE END
 

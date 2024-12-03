@@ -1,3 +1,4 @@
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 {{!-- Create a table --}}
 <table id="addresses-table">
 
@@ -12,6 +13,7 @@
                 {{@key}}
             </th>
             {{/each}}
+            <th>delete</th>
         </tr>
     </thead>
 
@@ -28,6 +30,7 @@
             <td>{{this.city}}</td>
             <td>{{this.state}}</td>
             <td>{{this.postalCode}}</td>
+            <td><button onclick="deleteAddress({{this.addressID}})">Delete</button></td>
         </tr>
         {{/each}}
     </tbody>
@@ -38,7 +41,12 @@
 <p>To add a new address, please enter their information below and click 'Submit'!</p>
 <form id="add-address-form-ajax">
     <label for="input-customerID">CustomerID: </label>
-    <input type="number" name="input-customerID" id="input-customerID">
+    <select name="input-customerID" id="input-customerID">
+        <option value="">Select a Customer</option>
+        {{#each customers}}
+        <option value="{{this.customerID}}">{{this.customerName}}</option>
+        {{/each}}
+    </select>
     
     <label for="input-streetAddress">Street Address: </label>
     <input type="text" name="input-Street Address" id="input-streetAddress">
@@ -60,3 +68,4 @@
 
 {{!-- Embed our javascript to handle the DOM manipulation and AJAX request --}}
 <script src="./js/add_address.js"></script>
+<script src="./js/delete_address.js"></script>

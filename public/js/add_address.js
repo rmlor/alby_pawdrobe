@@ -15,6 +15,8 @@ addAddressForm.addEventListener("submit", function (e) {
     let inputState = document.getElementById("input-state");
     let inputPostalCode = document.getElementById("input-postalCode");
 
+    console.log(inputCustomerID)
+
     // Get the values from the form fields
     let customerIDValue = inputCustomerID.value;
     let streetAddressValue = inputStreetAddress.value;
@@ -34,6 +36,8 @@ addAddressForm.addEventListener("submit", function (e) {
         postalCode: postalCodeValue
     }
     
+    console.log(data)
+
     // Setup our AJAX request
     var xhttp = new XMLHttpRequest();
     xhttp.open("POST", "/add-address-ajax", true);
@@ -89,6 +93,8 @@ addRowToTable = (data) => {
     let stateCell = document.createElement("TD");
     let postalCodeCell = document.createElement("TD");
 
+    let deleteCell = document.createElement("TD");
+
     // Fill the cells with correct data
     addressIDCell.innerText = newRow.addressID;
     customerIDCell.innerText = newRow.customerID;
@@ -98,6 +104,13 @@ addRowToTable = (data) => {
     stateCell.innerText = newRow.state;
     postalCodeCell.innerText = newRow.postalCode;
 
+    deleteCell = document.createElement("button");
+    deleteCell.innerHTML = "Delete";
+    deleteCell.onclick = function(){
+        deleteAddress(newRow.id);
+    };
+
+
     // Add the cells to the row 
     row.appendChild(addressIDCell);
     row.appendChild(customerIDCell);
@@ -106,6 +119,10 @@ addRowToTable = (data) => {
     row.appendChild(cityCell);
     row.appendChild(stateCell);
     row.appendChild(postalCodeCell);
+    row.appendChild(deleteCell);
+
+    // Add a row attribute so the deleteRow function can find a newly added row
+    row.setAttribute('data-value', newRow.id);
     
     // Add the row to the table
     currentTable.appendChild(row);
