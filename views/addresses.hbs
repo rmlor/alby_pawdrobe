@@ -66,6 +66,37 @@
     <input type="submit">
 </form>
 
+<h2>Update A Customer's Address</h2>
+<p>To update an address, select it from the drop-down menu on the left and update the fields</p>
+<form id="update-address-form-ajax">
+
+    <label for="input-addressID-update">Address: </label>
+    <select name="input-addressID-update" id="selectAddress">
+        <option value="test">Select an Address</option>
+        {{#each data}}
+        <option value="{{this.addressID}}">{{this.streetAddress}}, {{this.unit}}, {{this.city}}, {{this.state}}  {{this.postalCode}}</option>
+        {{/each}}
+    </select>
+
+    <label for="input-streetAddress-update">Street Address: </label>
+    <input type="text" name="input-streetAddress-update" id="input-streetAddress-update">
+
+    <label for="input-unit-update">Unit: </label>
+    <input type="text" name="input-unit-update" id="input-unit-update">
+
+    <label for="input-city-update">City: </label>
+    <input type="text" name="input-city-update" id="input-city-update">
+
+    <label for="input-state-update">State: </label>
+    <input type="text" name="input-state-update" id="input-state-update">
+
+    <label for="input-postalCode-update">Postal Code: </label>
+    <input type="number" name="input-postalCode-update" id="input-postalCode-update">
+
+    <input type="submit">
+</form>
+
 {{!-- Embed our javascript to handle the DOM manipulation and AJAX request --}}
 <script src="./js/add_address.js"></script>
 <script src="./js/delete_address.js"></script>
+<script src="./js/update_address.js"></script>

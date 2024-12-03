@@ -69,8 +69,7 @@ addAddressForm.addEventListener("submit", function (e) {
 })
 
 
-// Creates a single row from an Object representing a single record from 
-// bsg_people
+// Creates a single row from an Object representing a single record from Addresses
 addRowToTable = (data) => {
 
     // Get a reference to the current table on the page and clear it out.
@@ -107,9 +106,9 @@ addRowToTable = (data) => {
     deleteCell = document.createElement("button");
     deleteCell.innerHTML = "Delete";
     deleteCell.onclick = function(){
-        deleteAddress(newRow.id);
+        deleteAddress(newRow.addressID);
+        deleteAddress(newRow.addressID);
     };
-
 
     // Add the cells to the row 
     row.appendChild(addressIDCell);
@@ -122,8 +121,16 @@ addRowToTable = (data) => {
     row.appendChild(deleteCell);
 
     // Add a row attribute so the deleteRow function can find a newly added row
-    row.setAttribute('data-value', newRow.id);
+    row.setAttribute('data-value', newRow.addressID);
     
     // Add the row to the table
     currentTable.appendChild(row);
+
+    let selectMenu = document.getElementById("selectAddress");
+    let option = document.createElement("option");
+    option.text = newRow.streetAddress+ ', ' +  newRow.unit + ', ' +  newRow.city + ', ' +  newRow.state + ', ' +  newRow.postalCode;
+    option.value = newRow.addressID;
+    selectMenu.add(option);
+
+
 }

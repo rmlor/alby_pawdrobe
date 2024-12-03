@@ -7,7 +7,7 @@ var app     = express();                            // We need to instantiate an
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(express.static('public'))
-PORT        = 7560;                                 // Set a port number at the top so it's easy to change in the future
+PORT        = 7561;                                 // Set a port number at the top so it's easy to change in the future
 var db = require('./database/db-connector')         // Connecting to database
 
 app.use(express.json())
@@ -149,6 +149,47 @@ app.delete('/delete-address-ajax/', function(req,res,next){
         }
     
     })});
+
+app.put('/put-address-ajax', function(req,res,next){
+    let data = req.body;
+
+    console.log(data)
+
+    let streetAddress = data.streetAddress;
+    let unit = data.unit;
+    let city = data.city;
+    let state = data.state;
+    let postalCode = data.postalCode;
+    let addressID = parseInt(data.addressID);
+    
+    let queryUpdateAddress = `UPDATE Addresses SET streetAddress = ?, unit = ?, city = ?, state = ?, postalCode = ? WHERE Addresses.addressID = ?`;
+    let selectAddress= `SELECT * FROM Addresses WHERE Addresses.addressID = ?`
+    
+        // Run the 1st query
+        db.pool.query(queryUpdateAddress, [streetAddress, unit, city, state, postalCode, addressID], function(error, rows, fields){
+            if (error) {
+
+            // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
+            console.log(error);
+            res.sendStatus(400);
+            }
+
+            // If there was no error, we run our second query and return that data so we can use it to update the people's
+            // table on the front-end
+            else
+            {
+                // Run the second query
+                db.pool.query(selectAddress, [addressID], function(error, rows, fields) {
+
+                    if (error) {
+                        console.log(error);
+                        res.sendStatus(400);
+                    } else {
+                        res.send(rows);
+                    }
+                })
+            }
+})});
 
 // ADDRESSES PAGE END
 

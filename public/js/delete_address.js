@@ -20,7 +20,19 @@ function deleteAddress(addressID) {
       for (let i = 0, row; row = table.rows[i]; i++) {
          if (table.rows[i].getAttribute("data-value") == addressID) {
               table.deleteRow(i);
+              deleteDropDownMenu(addressID);
               break;
          }
       }
+  }
+
+  function deleteDropDownMenu(addressID){
+    let selectMenu = document.getElementById("selectAddress");
+    for (let i = 0; i < selectMenu.length; i++){
+      if (Number(selectMenu.options[i].value) === Number(addressID)){
+        selectMenu[i].remove();
+        break;
+      } 
+  
+    }
   }

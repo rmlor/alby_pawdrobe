@@ -25,6 +25,17 @@ function deleteCustomer(customerID) {
   xhttp.send(JSON.stringify(data));
 }
 
+function deleteDropDownMenu(customerID){
+  let selectMenu = document.getElementById("mySelect");
+  for (let i = 0; i < selectMenu.length; i++){
+    if (Number(selectMenu.options[i].value) === Number(customerID)){
+      selectMenu[i].remove();
+      break;
+    } 
+
+  }
+}
+
 
 function deleteRow(customerID){
 
