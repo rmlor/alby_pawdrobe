@@ -7,7 +7,7 @@ var app     = express();                            // We need to instantiate an
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(express.static('public'))
-PORT        = 7560;                                 // Set a port number at the top so it's easy to change in the future
+PORT        = 7561;                                 // Set a port number at the top so it's easy to change in the future
 var db = require('./database/db-connector')         // Connecting to database
 
 app.use(express.json())
@@ -33,7 +33,7 @@ app.get('/', function(req, res)
 
 
 
-// BREEDS START
+// BREEDS PAGE START
 
 app.get('/breeds', function(req, res)
 {  
@@ -46,28 +46,156 @@ app.get('/breeds', function(req, res)
 });  
 
 
-// BREEDS END
+// BREEDS PAGE END
 
 
 
-// ADRESSES START
+// ADRESSES PAGE START
 
 app.get('/addresses', function(req, res)
 {  
-    let selectAddresses = "SELECT * FROM Addresses;";               // Define our query
+    // Declare Query 1
+    let selectAddresses = "SELECT * FROM Addresses;";  
 
-    db.pool.query(selectAddresses, function(error, rows, fields){    // Execute the query
+    // Query 2 is the same in both cases
+    let selectCustomers = "SELECT * FROM Customers;";
 
-        res.render('addresses', {data: rows});                  // Render the index.hbs file, and also send the renderer
-    })                
-});  
+    // Run the 1st query
+    db.pool.query(selectAddresses, function(error, rows, fields){
+        
+        // Save the people
+        let address = rows;
+        
+        // Run the second query
+        db.pool.query(selectCustomers, (error, rows, fields) => {
+            
+            // Save the planets
+            let customers = rows;
+            return res.render('addresses', {data: address, customers: customers});
+        })               
+})
+});
 
-// ADDRESSES END
+app.post('/add-address-ajax', function(req, res) 
+{
+    // Capture the incoming data and parse it back to a JS object
+
+    let data = req.body;
+
+    // Capture NULL values
+    let customerID = parseInt(data.customerID);
+
+    let streetAddress = data.streetAddress;
+
+    let unit = data.unit;
+    if (isNaN(unit))
+        {
+            unit = 'NULL'
+        }
+
+    let city = data.city;
+
+    let state = data.state;
+
+    let postalCode = parseInt(data.postalCode);
+
+    // Create the query and run it on the database
+    query1 = `INSERT INTO Addresses (customerID, streetAddress, unit, city, state, postalCode) VALUES ('${data.customerID}', '${data.streetAddress}', '${data,unit}', '${data.city}', '${data.state}', '${data.postalCode}')`;
+    db.pool.query(query1, function(error, rows, fields){
+
+        // Check to see if there was an error
+        if (error) {
+
+            // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
+            console.log(error)
+            res.sendStatus(400);
+        }
+        else
+        {
+            // If there was no error, perform a SELECT * on bsg_people
+            query2 = `SELECT * FROM Addresses;`;
+            db.pool.query(query2, function(error, rows, fields){
+
+                // If there was an error on the second query, send a 400
+                if (error) {
+                    
+                    // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
+                    console.log(error);
+                    res.sendStatus(400);
+                }
+                // If all went well, send the results of the query back.
+                else
+                {
+                    res.send(rows);
+                }
+            })
+        }
+    })
+});
+
+app.delete('/delete-address-ajax/', function(req,res,next){
+    let data = req.body;
+    let addressID = parseInt(data.id);
+    console.log(data)
+    let deleteAddress = `DELETE FROM Addresses WHERE addressID = ?`;
+    
+        // Run the 1st query
+        db.pool.query(deleteAddress, [addressID], function(error, rows, fields){
+        if (error) {
+            console.log(error);
+            res.sendStatus(400);
+        } else {
+            res.sendStatus(204);
+        }
+    
+    })});
+
+app.put('/put-address-ajax', function(req,res,next){
+    let data = req.body;
+
+    console.log(data)
+
+    let streetAddress = data.streetAddress;
+    let unit = data.unit;
+    let city = data.city;
+    let state = data.state;
+    let postalCode = data.postalCode;
+    let addressID = parseInt(data.addressID);
+    
+    let queryUpdateAddress = `UPDATE Addresses SET streetAddress = ?, unit = ?, city = ?, state = ?, postalCode = ? WHERE Addresses.addressID = ?`;
+    let selectAddress= `SELECT * FROM Addresses WHERE Addresses.addressID = ?`
+    
+        // Run the 1st query
+        db.pool.query(queryUpdateAddress, [streetAddress, unit, city, state, postalCode, addressID], function(error, rows, fields){
+            if (error) {
+
+            // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
+            console.log(error);
+            res.sendStatus(400);
+            }
+
+            // If there was no error, we run our second query and return that data so we can use it to update the people's
+            // table on the front-end
+            else
+            {
+                // Run the second query
+                db.pool.query(selectAddress, [addressID], function(error, rows, fields) {
+
+                    if (error) {
+                        console.log(error);
+                        res.sendStatus(400);
+                    } else {
+                        res.send(rows);
+                    }
+                })
+            }
+})});
+
+// ADDRESSES PAGE END
 
 
 
 // CUSTOMERS PAGE START
-
 
 app.get('/customers', function(req, res)
 {  
