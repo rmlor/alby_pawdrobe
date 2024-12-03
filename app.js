@@ -574,12 +574,12 @@ app.get('/addresses', function(req, res)
             return res.render('addresses', {data: address, customers: customers});
         })               
 })
-
 });
 
 app.post('/add-address-ajax', function(req, res) 
 {
     // Capture the incoming data and parse it back to a JS object
+
     let data = req.body;
 
     // Capture NULL values
@@ -592,6 +592,7 @@ app.post('/add-address-ajax', function(req, res)
         {
             unit = 'NULL'
         }
+
     let city = data.city;
 
     let state = data.state;
@@ -702,17 +703,51 @@ app.get('/customers', function(req, res)
 
     db.pool.query(selectCustomers, function(error, rows, fields){    // Execute the query
 
-
-    db.pool.query(query, [orderID], (error, results) => {
-        if (error) {
-            res.status(500).send("Failed to delete order");
-        } else if (results.affectedRows === 0) {
-            res.status(404).send("Order not found");
-        } else {
-            res.sendStatus(200); 
-        }
-    });
+        res.render('customers', {data: rows});                  // Render the index.hbs file, and also send the renderer
+    })                
 });
+
+app.post('/add-customer-ajax', function(req, res) 
+{
+    // Capture the incoming data and parse it back to a JS object
+    let data = req.body;
+
+    console.log("Data being sent to server:", data);
+
+    // Create the query and run it on the database
+    insertCustomers = `INSERT INTO Customers (customerName, customerEmail, customerPhone) VALUES ('${data.customerName}', '${data.customerEmail}', '${data.customerPhone}')`;
+    db.pool.query(insertCustomers, function(error, rows, fields){
+
+        // Check to see if there was an error
+        if (error) {
+
+            // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
+            console.log(error)
+            res.sendStatus(400);
+        }
+        else
+        {
+            // If there was no error, perform a SELECT * on Customers
+            selectCustomers = `SELECT * FROM Customers;`;
+            db.pool.query(selectCustomers, function(error, rows, fields){
+
+                // If there was an error on the second query, send a 400
+                if (error) {
+
+                    // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
+                    console.log(error);
+                    res.sendStatus(400);
+                }
+                // If all went well, send the results of the query back.
+                else
+                {
+                    res.send(rows);
+                }
+            })
+        }
+    })
+});
+      
       
 //delete customer
 
@@ -773,7 +808,6 @@ app.put('/put-customer-ajax', function(req,res,next){
 })});
 
 // CUSTOMERS PAGE END
-
 
 /*
     Listener
