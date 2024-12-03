@@ -206,9 +206,7 @@ app.get('/api/drop/products', (req, res) => {
         }
         res.json(results); 
     });
-});
-
-
+  
 /*
     API ROUTES - Products (JSON)
 */
@@ -310,9 +308,6 @@ app.put('/api/products/update/:productID', (req, res) => {
             return res.status(500).json({error: "Failed to update product"});
         }
         res.status(200).json({ message: "Product updated successfully" }); 
-        }
-    );
-});
 
 // DELETE - product by ID (Products)
 app.delete('/api/products/delete/:productID', (req, res) => {
@@ -441,18 +436,21 @@ app.put('/api/orders/update/:orderID', (req, res) => {
 app.delete('/api/orders/delete/:orderID', (req, res) => {
     const {orderID} = req.params;
     const query = `DELETE FROM Orders WHERE orderID = ?`;
+  
+  // DELETE - order product by ID (Order_Products)
+app.delete('/api/order-products/delete/:orderProductID', (req, res) => {
+    const { orderProductID } = req.params;
+    const query = `
+        DELETE FROM Order_Products WHERE orderProductID = ?`;
 
-    db.pool.query(query, [orderID], (error, results) => {
+    db.pool.query(query, [orderProductID], (error) => {
         if (error) {
-            res.status(500).send("Failed to delete order");
-        } else if (results.affectedRows === 0) {
-            res.status(404).send("Order not found");
-        } else {
-            res.sendStatus(200); 
+            return res.status(500).json({ error: "Failed to delete order product" });
         }
+        res.sendStatus(200);
     });
 });
-
+  
 /*
     API ROUTES - Order_Products (JSON)
 */
@@ -534,19 +532,248 @@ app.put('/api/order-products/update/:orderProductID', (req, res) => {
     });
 });
 
-// DELETE - order product by ID (Order_Products)
-app.delete('/api/order-products/delete/:orderProductID', (req, res) => {
-    const { orderProductID } = req.params;
-    const query = `
-        DELETE FROM Order_Products WHERE orderProductID = ?`;
 
-    db.pool.query(query, [orderProductID], (error) => {
-        if (error) {
-            return res.status(500).json({ error: "Failed to delete order product" });
+// BREEDS PAGE START
+
+app.get('/breeds', function(req, res)
+{  
+    let selectBreeds = "SELECT * FROM Breeds;";               // Define our query
+
+    db.pool.query(selectBreeds, function(error, rows, fields){    // Execute the query
+
+        res.render('breeds', {data: rows});                  // Render the index.hbs file, and also send the renderer
+    })                
+});  
+
+
+// BREEDS PAGE END
+
+
+
+// ADRESSES PAGE START
+
+app.get('/addresses', function(req, res)
+{  
+    // Declare Query 1
+    let selectAddresses = "SELECT * FROM Addresses;";  
+
+    // Query 2 is the same in both cases
+    let selectCustomers = "SELECT * FROM Customers;";
+
+    // Run the 1st query
+    db.pool.query(selectAddresses, function(error, rows, fields){
+        
+        // Save the people
+        let address = rows;
+        
+        // Run the second query
+        db.pool.query(selectCustomers, (error, rows, fields) => {
+            
+            // Save the planets
+            let customers = rows;
+            return res.render('addresses', {data: address, customers: customers});
+        })               
+})
+
+});
+
+app.post('/add-address-ajax', function(req, res) 
+{
+    // Capture the incoming data and parse it back to a JS object
+    let data = req.body;
+
+    // Capture NULL values
+    let customerID = parseInt(data.customerID);
+
+    let streetAddress = data.streetAddress;
+
+    let unit = data.unit;
+    if (isNaN(unit))
+        {
+            unit = 'NULL'
         }
-        res.sendStatus(200);
+    let city = data.city;
+
+    let state = data.state;
+
+    let postalCode = parseInt(data.postalCode);
+
+    // Create the query and run it on the database
+    query1 = `INSERT INTO Addresses (customerID, streetAddress, unit, city, state, postalCode) VALUES ('${data.customerID}', '${data.streetAddress}', '${data,unit}', '${data.city}', '${data.state}', '${data.postalCode}')`;
+    db.pool.query(query1, function(error, rows, fields){
+
+        // Check to see if there was an error
+        if (error) {
+
+            // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
+            console.log(error)
+            res.sendStatus(400);
+        }
+        else
+        {
+            // If there was no error, perform a SELECT * on bsg_people
+            query2 = `SELECT * FROM Addresses;`;
+            db.pool.query(query2, function(error, rows, fields){
+
+                // If there was an error on the second query, send a 400
+                if (error) {
+                    
+                    // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
+                    console.log(error);
+                    res.sendStatus(400);
+                }
+                // If all went well, send the results of the query back.
+                else
+                {
+                    res.send(rows);
+                }
+            })
+        }
+    })
+});
+
+app.delete('/delete-address-ajax/', function(req,res,next){
+    let data = req.body;
+    let addressID = parseInt(data.id);
+    console.log(data)
+    let deleteAddress = `DELETE FROM Addresses WHERE addressID = ?`;
+    
+        // Run the 1st query
+        db.pool.query(deleteAddress, [addressID], function(error, rows, fields){
+        if (error) {
+            console.log(error);
+            res.sendStatus(400);
+        } else {
+            res.sendStatus(204);
+        }
+    
+    })});
+
+app.put('/put-address-ajax', function(req,res,next){
+    let data = req.body;
+
+    console.log(data)
+
+    let streetAddress = data.streetAddress;
+    let unit = data.unit;
+    let city = data.city;
+    let state = data.state;
+    let postalCode = data.postalCode;
+    let addressID = parseInt(data.addressID);
+    
+    let queryUpdateAddress = `UPDATE Addresses SET streetAddress = ?, unit = ?, city = ?, state = ?, postalCode = ? WHERE Addresses.addressID = ?`;
+    let selectAddress= `SELECT * FROM Addresses WHERE Addresses.addressID = ?`
+    
+        // Run the 1st query
+        db.pool.query(queryUpdateAddress, [streetAddress, unit, city, state, postalCode, addressID], function(error, rows, fields){
+            if (error) {
+
+            // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
+            console.log(error);
+            res.sendStatus(400);
+            }
+
+            // If there was no error, we run our second query and return that data so we can use it to update the people's
+            // table on the front-end
+            else
+            {
+                // Run the second query
+                db.pool.query(selectAddress, [addressID], function(error, rows, fields) {
+
+                    if (error) {
+                        console.log(error);
+                        res.sendStatus(400);
+                    } else {
+                        res.send(rows);
+                    }
+                })
+            }
+})});
+
+// ADDRESSES PAGE END
+
+
+
+// CUSTOMERS PAGE START
+
+app.get('/customers', function(req, res)
+{  
+    let selectCustomers = "SELECT * FROM Customers;";               // Define our query
+
+    db.pool.query(selectCustomers, function(error, rows, fields){    // Execute the query
+
+
+    db.pool.query(query, [orderID], (error, results) => {
+        if (error) {
+            res.status(500).send("Failed to delete order");
+        } else if (results.affectedRows === 0) {
+            res.status(404).send("Order not found");
+        } else {
+            res.sendStatus(200); 
+        }
     });
 });
+      
+//delete customer
+
+app.delete('/delete-customer-ajax/', function(req,res,next){
+    let data = req.body;
+    let customerID = parseInt(data.id);
+    console.log(data)
+    let deleteCustomer = `DELETE FROM Customers WHERE customerID = ?`;
+    
+    
+            // Run the 1st query
+            db.pool.query(deleteCustomer, [customerID], function(error, rows, fields){
+            if (error) {
+                console.log(error);
+                res.sendStatus(400);
+            } else {
+                res.sendStatus(204);
+            }
+    
+    })});
+
+app.put('/put-customer-ajax', function(req,res,next){
+    let data = req.body;
+
+    console.log(data)
+
+    let customerName = parseInt(data.customerName);
+    let customerEmail = data.customerEmail;
+    let customerPhone = data.customerPhone;
+
+    let queryUpdateCustomer = `UPDATE Customers SET customerEmail = ?, customerPhone = ? WHERE Customers.customerID = ?`;
+    let selectCustomer = `SELECT * FROM Customers WHERE Customers.customerID = ?`
+
+        // Run the 1st query
+        db.pool.query(queryUpdateCustomer, [customerEmail, customerPhone, customerName], function(error, rows, fields){
+            if (error) {
+
+            // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
+            console.log(error);
+            res.sendStatus(400);
+            }
+
+            // If there was no error, we run our second query and return that data so we can use it to update the people's
+            // table on the front-end
+            else
+            {
+                // Run the second query
+                db.pool.query(selectCustomer, [customerName], function(error, rows, fields) {
+
+                    if (error) {
+                        console.log(error);
+                        res.sendStatus(400);
+                    } else {
+                        res.send(rows);
+                    }
+                })
+            }
+})});
+
+// CUSTOMERS PAGE END
+
 
 /*
     Listener

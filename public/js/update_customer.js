@@ -25,11 +25,13 @@ const validatePhoneNumber = (phone) => {
     return phoneRegex.test(phone);
 };
 
+
 // Get the objects we need to modify
 let updateCustomerForm = document.getElementById('update-customer-form-ajax');
 
 // Modify the objects we need
 updateCustomerForm.addEventListener("submit", function (e) {
+
     // Prevent the form from submitting
     e.preventDefault();
 
@@ -39,6 +41,7 @@ updateCustomerForm.addEventListener("submit", function (e) {
     let inputCustomerPhone = document.getElementById("input-customerPhone");
 
     // Get the values from the form fields
+
     let customerNameValue = inputCustomerName.value.trim();
     let customerEmailValue = inputCustomerEmail.value.trim();
     let customerPhoneValue = inputCustomerPhone.value.trim();
@@ -60,11 +63,14 @@ updateCustomerForm.addEventListener("submit", function (e) {
     }
 
     // Put our data we want to send in a JavaScript object
+
     let data = {
         customerName: customerNameValue,
         customerEmail: customerEmailValue,
         customerPhone: customerPhoneValue,
+
     };
+
 
     // Setup our AJAX request
     var xhttp = new XMLHttpRequest();
@@ -129,3 +135,4 @@ function updateRow(data, customerID) {
         }
     }
 }
+

@@ -15,7 +15,9 @@ function deleteCustomer(customerID) {
 
           // Add the new data to the table
           deleteRow(customerID);
+
           alert("Customer deleted successfully!");
+
 
       }
       else if (xhttp.readyState == 4 && xhttp.status != 204) {
@@ -26,6 +28,17 @@ function deleteCustomer(customerID) {
   xhttp.send(JSON.stringify(data));
 }
 
+
+function deleteDropDownMenu(customerID){
+  let selectMenu = document.getElementById("mySelect");
+  for (let i = 0; i < selectMenu.length; i++){
+    if (Number(selectMenu.options[i].value) === Number(customerID)){
+      selectMenu[i].remove();
+      break;
+    } 
+
+  }
+}
 
 function deleteRow(customerID){
 
@@ -53,3 +66,4 @@ function deleteDropDownMenu(customerID){
 
   }
 }
+
