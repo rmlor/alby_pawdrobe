@@ -16,9 +16,6 @@ function deleteCustomer(customerID) {
           // Add the new data to the table
           deleteRow(customerID);
 
-          alert("Customer deleted successfully!");
-
-
       }
       else if (xhttp.readyState == 4 && xhttp.status != 204) {
           console.log("There was an error with the input.")
@@ -27,7 +24,6 @@ function deleteCustomer(customerID) {
   // Send the request and wait for the response
   xhttp.send(JSON.stringify(data));
 }
-
 
 function deleteDropDownMenu(customerID){
   let selectMenu = document.getElementById("mySelect");
@@ -39,6 +35,7 @@ function deleteDropDownMenu(customerID){
 
   }
 }
+
 
 function deleteRow(customerID){
 
@@ -66,4 +63,3 @@ function deleteDropDownMenu(customerID){
 
   }
 }
-
