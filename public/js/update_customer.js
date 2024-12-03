@@ -14,17 +14,6 @@ Source URL: https://stackoverflow.com/questions/4338267/validate-phone-number-wi
 Adaptation Details: The original regex pattern for comprehensive phone validation was retained and the implementation was simplified by wrapping it in an ES6 arrow function for readability and modularity.
 */
 
-// Validation Functions
-const validateEmail = (email) => {
-    const emailRegex = /^(([^<>()\[\]\.,;:\s@"]+(\.[^<>()\[\]\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return emailRegex.test(email);
-};
-
-const validatePhoneNumber = (phone) => {
-    const phoneRegex = /^(\(\d{3}\)|\d{3})(-|\s)?\d{3}(-|\s)\d{4}$/;
-    return phoneRegex.test(phone);
-};
-
 
 // Get the objects we need to modify
 let updateCustomerForm = document.getElementById('update-customer-form-ajax');

@@ -71,7 +71,7 @@
 // Server
 const express = require('express');
 const app = express();
-const PORT = 7156;
+const PORT = 4890;
 
 // Database
 const db = require('./database/db-connector');
@@ -108,18 +108,6 @@ app.get('/dogs', (req, res) => {
     });
 });
 
-app.get('/addresses', (req, res) => {
-    const query = `SELECT * FROM Addresses`;
-    
-    db.pool.query(query, (error, results) => {
-        if (error) {
-            console.error("Error fetching addresses:", error);
-            return res.status(500).json({error: "Failed to fetch addresses"});
-        }
-        res.json(results);
-    });
-});
-
 app.get('/products', (req, res) => {
     const query = `SELECT * FROM Products`;
     
@@ -151,6 +139,41 @@ app.get('/orders', (req, res) => {
         res.render('orders', {data: results});
     });
 });
+
+app.get('/customers', function(req, res)
+{  
+    let selectCustomers = "SELECT * FROM Customers;";               
+
+    db.pool.query(selectCustomers, function(error, rows, fields){    
+
+        res.render('customers', {data: rows});            
+    })                
+});
+
+
+app.get('/addresses', function(req, res)
+{  
+    let selectAddresses = "SELECT * FROM Addresses;";  
+
+    let selectCustomers = "SELECT * FROM Customers;";
+
+
+    db.pool.query(selectAddresses, function(error, rows, fields){
+        
+        let address = rows;
+        
+        db.pool.query(selectCustomers, (error, rows, fields) => {
+            
+            let customers = rows;
+
+            console.log('Addresses:', address);
+            console.log('Customers:', customers);
+
+            return res.render('addresses', {data: address, customers: customers});
+        })               
+})
+});
+
 
 /*
     API ROUTES - Dynamic Dropdowns (JSON)
@@ -552,30 +575,6 @@ app.get('/breeds', function(req, res)
 
 // ADRESSES PAGE START
 
-app.get('/addresses', function(req, res)
-{  
-    // Declare Query 1
-    let selectAddresses = "SELECT * FROM Addresses;";  
-
-    // Query 2 is the same in both cases
-    let selectCustomers = "SELECT * FROM Customers;";
-
-    // Run the 1st query
-    db.pool.query(selectAddresses, function(error, rows, fields){
-        
-        // Save the people
-        let address = rows;
-        
-        // Run the second query
-        db.pool.query(selectCustomers, (error, rows, fields) => {
-            
-            // Save the planets
-            let customers = rows;
-            return res.render('addresses', {data: address, customers: customers});
-        })               
-})
-});
-
 app.post('/add-address-ajax', function(req, res) 
 {
     // Capture the incoming data and parse it back to a JS object
@@ -696,16 +695,6 @@ app.put('/put-address-ajax', function(req,res,next){
 
 
 // CUSTOMERS PAGE START
-
-app.get('/customers', function(req, res)
-{  
-    let selectCustomers = "SELECT * FROM Customers;";               // Define our query
-
-    db.pool.query(selectCustomers, function(error, rows, fields){    // Execute the query
-
-        res.render('customers', {data: rows});                  // Render the index.hbs file, and also send the renderer
-    })                
-});
 
 app.post('/add-customer-ajax', function(req, res) 
 {

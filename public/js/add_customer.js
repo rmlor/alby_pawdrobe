@@ -95,8 +95,6 @@ addCustomerForm.addEventListener("submit", function (e) {
     xhttp.send(JSON.stringify(data));
 });
 
-})
-
 
 // Creates a single row from an Object representing a single record from Customers
 addRowToTable = (data) => {
@@ -145,7 +143,6 @@ addRowToTable = (data) => {
 
     // Add the row to the table
     currentTable.appendChild(row);
-}
 
     row.appendChild(deleteCell);
     
@@ -164,4 +161,3 @@ addRowToTable = (data) => {
     selectMenu.add(option);
 
 }
-
