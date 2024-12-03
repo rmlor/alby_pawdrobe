@@ -71,7 +71,7 @@
 // Server
 const express = require('express');
 const app = express();
-const PORT = 4189;
+const PORT = 7156;
 
 // Database
 const db = require('./database/db-connector');
@@ -205,7 +205,7 @@ app.get('/api/drop/products', (req, res) => {
             return res.status(500).json({error: "Failed to fetch products"}); 
         }
         res.json(results); 
-    });
+    })});
   
 /*
     API ROUTES - Products (JSON)
@@ -307,7 +307,7 @@ app.put('/api/products/update/:productID', (req, res) => {
         if (error) {
             return res.status(500).json({error: "Failed to update product"});
         }
-        res.status(200).json({ message: "Product updated successfully" }); 
+        res.status(200).json({ message: "Product updated successfully" })})}); 
 
 // DELETE - product by ID (Products)
 app.delete('/api/products/delete/:productID', (req, res) => {
@@ -449,7 +449,7 @@ app.delete('/api/order-products/delete/:orderProductID', (req, res) => {
         }
         res.sendStatus(200);
     });
-});
+})});
   
 /*
     API ROUTES - Order_Products (JSON)
