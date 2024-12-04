@@ -220,17 +220,18 @@ function updateBreedModal(breedID) {
 
             document.getElementById('breedID').value = breedData.breedID;
             document.getElementById('updateBreedName').value = breedData.breedName;
-            const coatTypeSelect = document.getElementById('updateBreedCoatType').value = breedData.breedCoatType;
-            const shedLevelSelect = document.getElementById('updateBreedShedLevel').value = breedData.breedShedLevel;
+            const coatTypeSelect = document.getElementById('updateBreedCoatType');
+            Array.from(coatTypeSelect.options).forEach(option => {
+                option.selected = option.value.toLowerCase() === breedData.breedCoatType.toLowerCase();
+            });
+            const shedLevelSelect = document.getElementById('updateBreedShedLevel');
+            Array.from(shedLevelSelect.options).forEach(option => {
+                option.selected = option.value.toLowerCase() === breedData.breedShedLevel.toLowerCase();
+            });
 
-            coatTypeSelect.value = breedData.breedCoatType.toLowerCase();
-            shedLevelSelect.value = breedData.breedShedLevel.toLowerCase();
-            setTimeout(() => {
-                console.log("Check field values after assignment:");
-                console.log("breedName:", document.getElementById('breedName').value);
-                console.log("breedCoatType:", document.getElementById('breedCoatType').value);
-                console.log("breedShedLevel:", document.getElementById('breedShedLevel').value);
-            }, 100);
+            // Debugging log after assignment
+            console.log("Selected Coat Type:", coatTypeSelect.value);
+            console.log("Selected Shed Level:", shedLevelSelect.value);
 
             openModal('update-breed-modal');
         })
