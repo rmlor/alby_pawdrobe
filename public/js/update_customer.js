@@ -1,138 +1,129 @@
-/*
-Citation for Email Validation Helper Function
-Date: December 2, 2024
-Adapted from: StackOverflow
-Source URL: https://stackoverflow.com/questions/46155/how-can-i-validate-an-email-address-in-javascript
-Adaptation Details: The original regex pattern for comprehensive email validation was retained and the implementation was simplified by wrapping it in an ES6 arrow function for readability and modularity.
-*/
+document.addEventListener('DOMContentLoaded', () => {
+    const updateCustomerForm = document.getElementById('update-customer-form-ajax');
+    const updateCustomerModal = document.getElementById('update-customer-modal');
 
-/*
-Citation for Phone Number Validation Helper Function
-Date: December 2, 2024
-Adapted from: StackOverflow
-Source URL: https://stackoverflow.com/questions/4338267/validate-phone-number-with-javascript
-Adaptation Details: The original regex pattern for comprehensive phone validation was retained and the implementation was simplified by wrapping it in an ES6 arrow function for readability and modularity.
-*/
+    // Attach event listeners to all Update buttons
+    document.querySelectorAll('[id^="update-customer-button-"]').forEach(button => {
+        button.addEventListener('click', function () {
+            const customerID = this.dataset.customerId;
+            openUpdateModal(customerID);
+        });
+    });
 
-// Validation Functions
-const validateEmail = (email) => {
-    const emailRegex = /^(([^<>()\[\]\.,;:\s@"]+(\.[^<>()\[\]\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return emailRegex.test(email);
-};
+    // Close the modal on "Cancel" or close button
+    document.querySelectorAll('.close-modal').forEach(button => {
+        button.addEventListener('click', () => closeModal(button.dataset.modalId));
+    });
+    document.getElementById('cancel-update-customer').addEventListener('click', () => {
+        updateCustomerForm.reset();
+        closeModal(updateCustomerModal);
+    });
 
-const validatePhoneNumber = (phone) => {
-    const phoneRegex = /^(\(\d{3}\)|\d{3})(-|\s)?\d{3}(-|\s)\d{4}$/;
-    return phoneRegex.test(phone);
-};
-
-
-// Get the objects we need to modify
-let updateCustomerForm = document.getElementById('update-customer-form-ajax');
-
-// Modify the objects we need
-updateCustomerForm.addEventListener("submit", function (e) {
-
-    // Prevent the form from submitting
-    e.preventDefault();
-
-    // Get form fields we need to get data from
-    let inputCustomerName = document.getElementById("mySelect");
-    let inputCustomerEmail = document.getElementById("input-customerEmail");
-    let inputCustomerPhone = document.getElementById("input-customerPhone");
-
-    // Get the values from the form fields
-
-    let customerNameValue = inputCustomerName.value.trim();
-    let customerEmailValue = inputCustomerEmail.value.trim();
-    let customerPhoneValue = inputCustomerPhone.value.trim();
-
-    // Validate inputs
-    if (!customerNameValue) {
-        alert("Customer name is required.");
-        return;
-    }
-
-    if (!validateEmail(customerEmailValue)) {
-        alert("Please enter a valid email address.");
-        return;
-    }
-
-    if (!validatePhoneNumber(customerPhoneValue)) {
-        alert("Please enter a valid phone number in the format 123-456-7890 or (123) 456-7890.");
-        return;
-    }
-
-    // Put our data we want to send in a JavaScript object
-
-    let data = {
-        customerName: customerNameValue,
-        customerEmail: customerEmailValue,
-        customerPhone: customerPhoneValue,
-
-    };
-
-
-    // Setup our AJAX request
-    var xhttp = new XMLHttpRequest();
-    xhttp.open("PUT", "/put-customer-ajax", true);
-    xhttp.setRequestHeader("Content-type", "application/json");
-
-    // Tell our AJAX request how to resolve
-    xhttp.onreadystatechange = () => {
-        if (xhttp.readyState == 4 && xhttp.status == 200) {
-            // Update the table with new data
-            updateRow(xhttp.response, customerNameValue);
-
-            // Show success confirmation message
-            alert("Customer updated successfully!");
-
-            // Clear the form for the next transaction
-            inputCustomerEmail.value = '';
-            inputCustomerPhone.value = '';
-        } else if (xhttp.readyState == 4 && xhttp.status != 200) {
-            console.log("There was an error with the input.");
-        }
-    };
-
-    // Send the request and wait for the response
-    xhttp.send(JSON.stringify(data));
+    // Handle form submission for updating customer
+    updateCustomerForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        updateCustomer();
+    });
 });
 
-// Pre-Populate Update Form with Current Row Info
-document.getElementById("mySelect").addEventListener("change", function () {
-    let selectedCustomerID = this.value;
-    let table = document.getElementById("customer-table");
+/**
+ * Opens the update modal and populates it with the selected customer's data.
+ * @param {number} customerID - The ID of the customer to update.
+ */
+function openUpdateModal(customerID) {
+    const table = document.getElementById('customer-table');
 
     for (let i = 0, row; row = table.rows[i]; i++) {
-        if (table.rows[i].getAttribute("data-value") == selectedCustomerID) {
-            let email = row.getElementsByTagName("td")[2].innerText;
-            let phone = row.getElementsByTagName("td")[3].innerText;
+        if (row.getAttribute('data-value') == customerID) {
+            // Populate the modal fields with the row data
+            const email = row.getElementsByTagName('td')[2].innerText;
+            const phone = row.getElementsByTagName('td')[3].innerText;
 
-            document.getElementById("input-customerEmail").value = email;
-            document.getElementById("input-customerPhone").value = phone;
+            document.getElementById('customerID').value = customerID;
+            document.getElementById('input-customerEmail').value = email;
+            document.getElementById('input-customerPhone').value = phone;
 
+            openModal('update-customer-modal');
             break;
-        }
-    }
-});
-
-function updateRow(data, customerID) {
-    let parsedData = JSON.parse(data);
-    let table = document.getElementById("customer-table");
-
-    for (let i = 0, row; row = table.rows[i]; i++) {
-        if (table.rows[i].getAttribute("data-value") == customerID) {
-            // Get the location of the row where we found the matching customer ID
-            let updateRowIndex = table.getElementsByTagName("tr")[i];
-
-            // Update customerEmail in the table
-            let td_email = updateRowIndex.getElementsByTagName("td")[2];
-            td_email.innerHTML = parsedData[0].customerEmail;
-
-            // Update customerPhone in the table
-            let td_phone = updateRowIndex.getElementsByTagName("td")[3];
-            td_phone.innerHTML = parsedData[0].customerPhone;
         }
     }
 }
 
+/**
+ * Sends the updated customer details to the server.
+ */
+function updateCustomer() {
+    const customerID = document.getElementById('customerID').value;
+    const customerEmail = document.getElementById('input-customerEmail').value.trim();
+    const customerPhone = document.getElementById('input-customerPhone').value.trim();
+
+    // Debugging
+    console.log('Customer ID:', customerID);
+    console.log('Email:', customerEmail, 'Phone:', customerPhone);
+    if (!customerID || isNaN(customerID)) {
+        alert('Invalid Customer ID.');
+        return;
+    }
+    // Validate input
+    if (!validateEmail(customerEmail)) {
+        alert('Please enter a valid email address.');
+        return;
+    }
+    if (!validatePhoneNumber(customerPhone)) {
+        alert('Please enter a valid phone number in the format 123-456-7890 or (123) 456-7890.');
+        return;
+    }
+
+    const data = {
+        customerID: parseInt(customerID, 10),
+        customerEmail,
+        customerPhone,
+    };
+
+    const xhttp = new XMLHttpRequest();
+    xhttp.open('PUT', '/put-customer-ajax', true);
+    xhttp.setRequestHeader('Content-type', 'application/json');
+
+    xhttp.onreadystatechange = function () {
+        if (xhttp.readyState === 4 && xhttp.status === 200) {
+            // Update the table with the new customer data
+            updateRow(xhttp.response, customerID);
+
+            // Reset the form and close the modal
+            document.getElementById('customerID').value = "";
+            document.getElementById('input-customerEmail').value = "";
+            document.getElementById('input-customerPhone').value = "";
+            closeModal('update-customer-modal');
+
+            alert('Customer updated successfully!');
+
+        } else if (xhttp.readyState === 4) {
+            alert('Failed to update customer. Please try again.');
+            console.error('Error updating customer:', xhttp.responseText);
+        }
+    };
+
+    xhttp.send(JSON.stringify(data));
+}
+
+/**
+ * Updates a specific customer's row in the table.
+ * @param {string} data - JSON response string containing updated customer details.
+ * @param {number} customerID - The ID of the customer to update.
+ */
+function updateRow(data, customerID) {
+    const parsedData = JSON.parse(data);
+    const updatedCustomer = parsedData[0]; // Assuming the response returns the updated customer object
+    const table = document.getElementById('customer-table');
+
+    for (let i = 0, row; row = table.rows[i]; i++) {
+        if (row.getAttribute('data-value') === customerID) {
+            // Update customerEmail in the table
+            row.cells[2].innerText = updatedCustomer.customerEmail;
+
+            // Update customerPhone in the table
+            row.cells[3].innerText = updatedCustomer.customerPhone;
+            break;
+        }
+    }
+}
