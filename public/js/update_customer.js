@@ -43,6 +43,12 @@ function openUpdateModal(customerID) {
             document.getElementById('input-customerEmail').value = email;
             document.getElementById('input-customerPhone').value = phone;
 
+            // Update modal header
+            const updateCustomerIDSpan = document.getElementById('updateCustomerID');
+            if (updateCustomerIDSpan) {
+                updateCustomerIDSpan.textContent = customerID;
+            }
+
             openModal('update-customer-modal');
             break;
         }
