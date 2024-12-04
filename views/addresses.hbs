@@ -1,102 +1,123 @@
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-{{!-- Create a table --}}
-<table id="addresses-table">
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Manage Addresses</title>
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    <link rel="stylesheet" type="text/css" href="/css/modal.css">
+</head>
+<body>
+    <h1>Address Library</h1>
+    <p>Store shipping and billing logistics for customers, making every delivery a breeze.</p>
 
-    {{!-- Header section --}}
-    <thead>
-
-        {{!-- For just the first row, we print each key of the row object as a header cell so we
-        know what each column means when the page renders --}}
-        <tr>
-            {{#each data.[0]}}
-            <th>
-                {{@key}}
-            </th>
+    <!-- Addresses Table -->
+    <table id="addresses-table">
+        <thead>
+            <tr>
+                <th>Address ID</th>
+                <th>Customer ID</th>
+                <th>Customer Name</th>
+                <th>Street Address</th>
+                <th>Unit</th>
+                <th>City</th>
+                <th>State</th>
+                <th>Postal Code</th>
+                <th>Address Tools</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each data}}
+            <tr data-value="{{this.addressID}}">
+                <td>{{this.addressID}}</td>
+                <td>{{this.customerID}}</td>
+                <td>{{this.customerName}}</td>
+                <td>{{this.streetAddress}}</td>
+                <td>{{this.unit}}</td>
+                <td>{{this.city}}</td>
+                <td>{{this.state}}</td>
+                <td>{{this.postalCode}}</td>
+                <td>
+                    <button id="update-address-button-{{this.addressID}}" data-address-id="{{this.addressID}}">Update</button>
+                    <button id="delete-address-button-{{this.addressID}}" data-address-id="{{this.addressID}}">Delete</button>
+                </td>
+            </tr>
             {{/each}}
-            <th>delete</th>
-        </tr>
-    </thead>
+        </tbody>
+    </table>
 
-    {{!-- Body section --}}
-    <tbody>
+    <!-- Add Address Button -->
+    <button id="add-address-button">Add New Address</button>
 
-        {{!-- For each row, print the attributes in order--}}
-        {{#each data}}
-        <tr data-value={{this.addressID}}>
-            <td>{{this.addressID}}</td>
-            <td>{{this.customerID}}</td>
-            <td>{{this.streetAddress}}</td>
-            <td>{{this.unit}}</td>
-            <td>{{this.city}}</td>
-            <td>{{this.state}}</td>
-            <td>{{this.postalCode}}</td>
-            <td><button onclick="deleteAddress({{this.addressID}})">Delete</button></td>
-        </tr>
-        {{/each}}
-    </tbody>
-</table>
+    <!-- Add Address Modal -->
+    <div id="add-address-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" data-modal-id="add-address-modal">&times;</span>
+            <h2>Add New Address</h2>
+            <form id="add-address-form-ajax">
+                <label for="input-customerID">Customer:</label>
+                <select name="input-customerID" id="input-customerID" required>
+                    <option value="">Select a Customer</option>
+                    {{#each customers}}
+                    <option value="{{this.customerID}}">{{this.customerName}}</option>
+                    {{/each}}
+                </select>
 
-{{!-- Form to add a record to the table  --}}
-<h2>Add a new address</h2>
-<p>To add a new address, please enter their information below and click 'Submit'!</p>
-<form id="add-address-form-ajax">
-    <label for="input-customerID">CustomerID: </label>
-    <select name="input-customerID" id="input-customerID">
-        <option value="">Select a Customer</option>
-        {{#each customers}}
-        <option value="{{this.customerID}}">{{this.customerName}}</option>
-        {{/each}}
-    </select>
+                <label for="input-streetAddress">Street Address:</label>
+                <input type="text" id="input-streetAddress" name="streetAddress" required>
+
+                <label for="input-unit">Unit:</label>
+                <input type="text" id="input-unit" name="unit">
+
+                <label for="input-city">City:</label>
+                <input type="text" id="input-city" name="city" required>
+
+                <label for="input-state">State:</label>
+                <input type="text" id="input-state" name="state" required>
+
+                <label for="input-postalCode">Postal Code:</label>
+                <input type="text" id="input-postalCode" name="postalCode" required>
+
+                <button type="submit">Add Address</button>
+                <button type="button" id="cancel-add-address">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Update Address Modal -->
+    <div id="update-address-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" data-modal-id="update-address-modal">&times;</span>
+            <h2>Update Address #<span id="updateAddressID"></span></h2>
+            <form id="update-address-form-ajax">
+                <input type="hidden" id="addressID" name="addressID">
+
+                <label for="input-streetAddress-update">Street Address:</label>
+                <input type="text" id="input-streetAddress-update" name="streetAddress" required>
+
+                <label for="input-unit-update">Unit:</label>
+                <input type="text" id="input-unit-update" name="unit">
+
+                <label for="input-city-update">City:</label>
+                <input type="text" id="input-city-update" name="city" required>
+
+                <label for="input-state-update">State:</label>
+                <input type="text" id="input-state-update" name="state" required>
+
+                <label for="input-postalCode-update">Postal Code:</label>
+                <input type="text" id="input-postalCode-update" name="postalCode" required>
+
+                <button type="submit">Save</button>
+                <button type="button" id="cancel-update-address">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Includes -->
+    <script src="./js/manage_modal.js"></script>
+    <script src="./js/validate_input.js"></script>
+    <script src="./js/delete_address.js"></script>
+    <script src="./js/add_address.js"></script>
+    <script src="./js/update_address.js"></script>
     
-    <label for="input-streetAddress">Street Address: </label>
-    <input type="text" name="input-Street Address" id="input-streetAddress">
-
-    <label for="input-unit">Unit: </label>
-    <input type="text" name="input-unit" id="input-unit">
-
-    <label for="input-city">City: </label>
-    <input type="text" name="input-city" id="input-city">
-
-    <label for="input-state">State: </label>
-    <input type="text" name="input-state" id="input-state">
-
-    <label for="input-postalCode">Postal Code: </label>
-    <input type="number" name="input-postalCode" id="input-postalCode">
-
-    <input type="submit">
-</form>
-
-<h2>Update A Customer's Address</h2>
-<p>To update an address, select it from the drop-down menu on the left and update the fields</p>
-<form id="update-address-form-ajax">
-
-    <label for="input-addressID-update">Address: </label>
-    <select name="input-addressID-update" id="selectAddress">
-        <option value="test">Select an Address</option>
-        {{#each data}}
-        <option value="{{this.addressID}}">{{this.streetAddress}}, {{this.unit}}, {{this.city}}, {{this.state}}  {{this.postalCode}}</option>
-        {{/each}}
-    </select>
-
-    <label for="input-streetAddress-update">Street Address: </label>
-    <input type="text" name="input-streetAddress-update" id="input-streetAddress-update">
-
-    <label for="input-unit-update">Unit: </label>
-    <input type="text" name="input-unit-update" id="input-unit-update">
-
-    <label for="input-city-update">City: </label>
-    <input type="text" name="input-city-update" id="input-city-update">
-
-    <label for="input-state-update">State: </label>
-    <input type="text" name="input-state-update" id="input-state-update">
-
-    <label for="input-postalCode-update">Postal Code: </label>
-    <input type="number" name="input-postalCode-update" id="input-postalCode-update">
-
-    <input type="submit">
-</form>
-
-{{!-- Embed our javascript to handle the DOM manipulation and AJAX request --}}
-<script src="./js/add_address.js"></script>
-<script src="./js/delete_address.js"></script>
-<script src="./js/update_address.js"></script>
+</body>
+</html>
