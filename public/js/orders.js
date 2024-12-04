@@ -589,8 +589,17 @@ function updateOrderModal(orderID) {
             // Populate form fields
             document.getElementById('orderID').value = orderData.orderID;
             document.getElementById('updateGiftNote').value = orderData.orderGiftNote || '';
-            document.getElementById('updateCustomRequest').value = orderData.orderCustomRequest || '';
-            document.getElementById('updateOrderStatus').value = orderData.orderStatus || '';
+            // Custom Request Dropdown
+            const customRequestSelect = document.getElementById('updateCustomRequest');
+            Array.from(customRequestSelect.options).forEach(option => {
+                option.selected = option.value.toLowerCase() === (orderData.orderCustomRequest || '').toLowerCase();
+            });
+
+            // Order Status Dropdown
+            const orderStatusSelect = document.getElementById('updateOrderStatus');
+            Array.from(orderStatusSelect.options).forEach(option => {
+                option.selected = option.value.toLowerCase() === (orderData.orderStatus || '').toLowerCase();
+            });
             document.getElementById('updateShippedDate').value = orderData.orderShippedDate || '';
             document.getElementById('updateDeliveredDate').value = orderData.orderDeliveredDate || '';
 
