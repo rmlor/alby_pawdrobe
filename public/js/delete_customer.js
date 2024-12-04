@@ -1,69 +1,50 @@
-function deleteCustomer(customerID) {
-  // Put our data we want to send in a javascript object
-  let data = {
-      id: customerID
-  };
+document.addEventListener('DOMContentLoaded', () => {
+    // Attach event listeners to all Delete buttons
+    document.querySelectorAll('[id^="delete-customer-button-"]').forEach(button => {
+        button.addEventListener('click', function () {
+            const customerID = this.dataset.customerId;
+            confirmAndDeleteCustomer(customerID);
+        });
+    });
+});
 
-  // Setup our AJAX request
-  var xhttp = new XMLHttpRequest();
-  xhttp.open("DELETE", "/delete-customer-ajax", true);
-  xhttp.setRequestHeader("Content-type", "application/json");
+/**
+* Confirms and deletes a customer by ID.
+* @param {number} customerID - The ID of the customer to delete.
+*/
+function confirmAndDeleteCustomer(customerID) {
+    if (!confirm("Are you sure you want to delete this customer?")) return;
 
-  // Tell our AJAX request how to resolve
-  xhttp.onreadystatechange = () => {
-      if (xhttp.readyState == 4 && xhttp.status == 204) {
+    const data = { id: customerID };
 
-          // Add the new data to the table
-          deleteRow(customerID);
+    const xhttp = new XMLHttpRequest();
+    xhttp.open("DELETE", "/delete-customer-ajax", true);
+    xhttp.setRequestHeader("Content-type", "application/json");
 
-          alert("Customer deleted successfully!");
+    xhttp.onreadystatechange = () => {
+        if (xhttp.readyState === 4 && xhttp.status === 204) {
+            // Remove the row from the table
+            deleteRow(customerID);
+            alert("Customer deleted successfully!");
+        } else if (xhttp.readyState === 4) {
+            alert("Failed to delete customer. Please try again.");
+            console.error("Error deleting customer:", xhttp.responseText);
+        }
+    };
 
-
-      }
-      else if (xhttp.readyState == 4 && xhttp.status != 204) {
-          console.log("There was an error with the input.")
-      }
-  }
-  // Send the request and wait for the response
-  xhttp.send(JSON.stringify(data));
+    xhttp.send(JSON.stringify(data));
 }
 
-
-function deleteDropDownMenu(customerID){
-  let selectMenu = document.getElementById("mySelect");
-  for (let i = 0; i < selectMenu.length; i++){
-    if (Number(selectMenu.options[i].value) === Number(customerID)){
-      selectMenu[i].remove();
-      break;
-    } 
-
-  }
+/**
+* Removes the row of the deleted customer from the table.
+* @param {number} customerID - The ID of the customer to remove.
+*/
+function deleteRow(customerID) {
+    const table = document.getElementById("customer-table");
+    for (let i = 0, row; row = table.rows[i]; i++) {
+        if (row.getAttribute("data-value") === customerID) {
+            table.deleteRow(i);
+            break;
+        }
+    }
 }
-
-function deleteRow(customerID){
-
-  console.log('customerID: ', customerID)
-
-  let table = document.getElementById("customer-table");
-  for (let i = 0, row; row = table.rows[i]; i++) {
-     //iterate through rows
-     //rows would be accessed using the "row" variable assigned in the for loop
-     if (table.rows[i].getAttribute("data-value") == customerID) {
-          table.deleteRow(i);
-          deleteDropDownMenu(customerID);
-          break;
-     }
-  }
-}
-
-function deleteDropDownMenu(customerID){
-  let selectMenu = document.getElementById("mySelect");
-  for (let i = 0; i < selectMenu.length; i++){
-    if (Number(selectMenu.options[i].value) === Number(customerID)){
-      selectMenu[i].remove();
-      break;
-    } 
-
-  }
-}
-
