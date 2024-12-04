@@ -1,7 +1,5 @@
-//orders.js: Handles Orders and Order_Products
-
 /*
-    Citation for DOM Manipulation and Event Handling (Tables, Forms)
+    Citation for DOM Manipulation and Event Handling (Dropdowns, Tables, Forms)
     - Date: 12/1/2024
     - Adapted from:
       1. Web Development Module – Modifying the DOM Tree & DOM Events
@@ -18,15 +16,15 @@
 */
 
 /*
-    Citation for CRUD Implementations
+    Citation for API Usage and CRUD Implementations
     - Date: 12/1/2024
     - Adapted from: Node.js Starter App – Steps 4, 5, 7 & 8
     - Source URLs
-      1. https://github.com/osu-cs340-ecampus/nodejs-starter-app/tree/main/Step%204%20-%20Dynamically%20Displaying%20Data
+      1.  https://github.com/osu-cs340-ecampus/nodejs-starter-app/tree/main/Step%204%20-%20Dynamically%20Displaying%20Data
       2. https://github.com/osu-cs340-ecampus/nodejs-starter-app/tree/main/Step%205%20-%20Adding%20New%20Data
       3. https://github.com/osu-cs340-ecampus/nodejs-starter-app/tree/main/Step%207%20-%20Dynamically%20Deleting%20Data 
       4. https://github.com/osu-cs340-ecampus/nodejs-starter-app/tree/main/Step%208%20-%20Dynamically%20Updating%20Data
-    - Adaptation Details: lient-side use of `fetch()` for sending requests to API routes and handling responses was adapted from the Web Development modules, and integration of CRUD logic into the frontend using dynamic tables and forms was informed by both the repository.
+    - Adaptation Details: Integration of CRUD logic into the frontend using dynamic tables and forms was informed by both the repository.
 */
 
 /*
