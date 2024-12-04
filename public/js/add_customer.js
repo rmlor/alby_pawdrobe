@@ -1,5 +1,5 @@
 /*
-    Citation for DOM Manipulation and Event Handling (Dropdowns, Tables, Forms)
+    Citation for DOM Manipulation and Event Handling (Tables, Forms)
     - Date: 12/1/2024
     - Adapted from:
       1. Web Development Module – Modifying the DOM Tree & DOM Events
