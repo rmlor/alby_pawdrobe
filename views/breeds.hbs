@@ -1,31 +1,117 @@
-{{!-- Create a table --}}
-<table id="breeds-table">
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Manage Breeds</title>
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    <link rel="stylesheet" type="text/css" href="/css/modal.css">
+</head>
+<body>
+    <h1>Breed Library</h1>
+    <p>Store essential breed-specific details to guide product design and inventory planning.</p>
 
-    {{!-- Header section --}}
-    <thead>
-
-        {{!-- For just the first row, we print each key of the row object as a header cell so we
-        know what each column means when the page renders --}}
-        <tr>
-            {{#each data.[0]}}
-            <th>
-                {{@key}}
-            </th>
+    <!-- Breeds Table -->
+    <table id="breeds-table">
+        <thead>
+            <tr>
+                <th>Breed ID</th>
+                <th>Breed Name</th>
+                <th>Coat Type</th>
+                <th>Shed Level</th>
+                <th>Breed Tools</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each data}}
+            <tr data-value="{{this.breedID}}">
+                <td>{{this.breedID}}</td>
+                <td>{{this.breedName}}</td>
+                <td>{{this.breedCoatType}}</td>
+                <td>{{this.breedShedLevel}}</td>
+                <td>
+                    <button id="update-breed-button-{{this.breedID}}" data-breed-id="{{this.breedID}}">Update</button>
+                    <button id="delete-breed-button-{{this.breedID}}" data-breed-id="{{this.breedID}}">Delete</button>
+                </td>
+            </tr>
             {{/each}}
-        </tr>
-    </thead>
+        </tbody>
+    </table>
 
-    {{!-- Body section --}}
-    <tbody>
+    <!-- Add Breed Button -->
+    <button id="add-breed-button">Add New Breed</button>
 
-        {{!-- For each row, print the attributes in order--}}
-        {{#each data}}
-        <tr data-value={{this.breedID}}>
-            <td>{{this.breedID}}</td>
-            <td>{{this.breedName}}</td>
-            <td>{{this.breedCoatType}}</td>
-            <td>{{this.breedShedLevel}}</td>
-        </tr>
-        {{/each}}
-    </tbody>
-</table>
+    <!-- Add Breed Modal -->
+    <div id="add-breed-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" data-modal-id="add-breed-modal">&times;</span>
+            <h2>Add New Breed</h2>
+            <form id="add-breed-form">
+                <label for="breedName">Breed Name:</label>
+                <input type="text" id="breedName" name="breedName" required>
+
+                <label for="breedCoatType">Coat Type:</label>
+                <select id="breedCoatType" name="breedCoatType" required>
+                    <option value="">Select Coat Type</option>
+                    <option value="short">Short</option>
+                    <option value="long">Long</option>
+                    <option value="hairless">Hairless</option>
+                    <option value="curly">Curly</option>
+                    <option value="wire">Wire</option>
+                    <option value="fluffy">Fluffy</option>
+                    <option value="combination">Combination</option>
+                </select>
+
+                <label for="breedShedLevel">Shed Level:</label>
+                <select id="breedShedLevel" name="breedShedLevel" required>
+                    <option value="">Select Shed Level</option>
+                    <option value="high">High</option>
+                    <option value="moderate">Moderate</option>
+                    <option value="low">Low</option>
+                </select>
+
+                <button type="submit">Add Breed</button>
+                <button type="button" id="cancel-add-breed">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Update Breed Modal -->
+    <div id="update-breed-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" data-modal-id="update-breed-modal">&times;</span>
+            <h2>Update Breed #<span id="updateBreedID"></span></h2>
+            <form id="update-breed-form">
+                <input type="hidden" id="breedID" name="breedID">
+
+                <label for="updateBreedName">Breed Name:</label>
+                <input type="text" id="updateBreedName" name="breedName" required>
+
+                <label for="updateBreedCoatType">Coat Type:</label>
+                <select id="updateBreedCoatType" name="breedCoatType" required>
+                    <option value="short">Short</option>
+                    <option value="long">Long</option>
+                    <option value="hairless">Hairless</option>
+                    <option value="curly">Curly</option>
+                    <option value="wire">Wire</option>
+                    <option value="fluffy">Fluffy</option>
+                    <option value="combination">Combination</option>
+                </select>
+
+                <label for="updateBreedShedLevel">Shed Level:</label>
+                <select id="updateBreedShedLevel" name="breedShedLevel" required>
+                    <option value="high">High</option>
+                    <option value="moderate">Moderate</option>
+                    <option value="low">Low</option>
+                </select>
+
+                <button type="submit">Save</button>
+                <button type="button" id="cancel-update-breed">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Includes -->
+    <script src="./js/manage_modal.js"></script>
+    <script src="./js/breeds.js"></script>
+</body>
+</html>
