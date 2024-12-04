@@ -27,6 +27,9 @@ table {
     border-collapse: collapse;
     margin: 20px 0;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    .table-wrapper {
+        margin-bottom: 20px; /* Adds spacing below the table */
+    }
 }
 
 th, td {
