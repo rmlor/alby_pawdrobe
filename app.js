@@ -366,7 +366,7 @@ app.post('/add-address-ajax', (req, res) => {
     // Execute nested SQL queries
     db.pool.query(insertQuery,                                                                                              // INSERT query for adding new record in backend database
                 [data.customerID, data.streetAddress, data.unit || null, data.city, data.state, data.postalCode], 
-                function(error, rows, fields) {
+                function(error, results, fields) {
         if (error) {
             console.error("Error inserting address:", error);
             return res.status(400).send("Error inserting address.");
