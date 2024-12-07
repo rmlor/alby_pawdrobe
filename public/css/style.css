@@ -163,7 +163,6 @@ input:focus, select:focus, textarea:focus {
     table, th, td {
         font-size: 0.9em;
     }
-
     .modal-content {
         width: 90%;
     }
