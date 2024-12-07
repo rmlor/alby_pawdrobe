@@ -1,3 +1,54 @@
+/*
+    Citation for DOM Manipulation and Event Handling (Dropdowns, Tables, Forms)
+    - Date: 12/1/2024
+    - Adapted from:
+      1. Web Development Module – Modifying the DOM Tree & DOM Events
+      2. Node.js Starter App – Steps 4-8
+    - Source URLs:
+      1. https://canvas.oregonstate.edu/courses/1967288/pages/exploration-modifying-the-dom-tree?module_item_id=24465404
+      2. https://canvas.oregonstate.edu/courses/1967288/pages/exploration-dom-events?module_item_id=24465405
+      3. https://github.com/osu-cs340-ecampus/nodejs-starter-app/tree/main/Step%204%20-%20Dynamically%20Displaying%20Data
+      4. https://github.com/osu-cs340-ecampus/nodejs-starter-app/tree/main/Step%205%20-%20Adding%20New%20Data
+      5. https://github.com/osu-cs340-ecampus/nodejs-starter-app/tree/main/Step%206%20-%20Dynamically%20Filling%20Dropdowns%20and%20Adding%20a%20Search%20Box
+      6. https://github.com/osu-cs340-ecampus/nodejs-starter-app/tree/main/Step%207%20-%20Dynamically%20Deleting%20Data 
+      7. https://github.com/osu-cs340-ecampus/nodejs-starter-app/tree/main/Step%208%20-%20Dynamically%20Updating%20Data
+    - Adaptation Details: DOM event manipulation logic, event listeners for user interactions, and its implementation for dynamic dropdowns, tables, and forms with data fetched from the backend were respectively informed by Web Development modules and Node.js Starter App repository.
+*/
+
+/*
+    Citation for API Usage and CRUD Implementations
+    - Date: 12/1/2024
+    - Adapted from:
+      1. Web Development Course Modules: Writing Asynchronous Code & Routing and API Responses
+      2. Node.js Starter App – Steps 4, 5, 7 & 8
+    - Adapted from: Node.js Starter App – Steps 4, 5, 7 & 8
+    - Source URLs
+      1. https://canvas.oregonstate.edu/courses/1967288/pages/exploration-writing-asynchronous-code?module_item_id=24465423 
+      2. https://canvas.oregonstate.edu/courses/1967288/pages/exploration-routing-and-forms?module_item_id=24465437 
+      3. https://github.com/osu-cs340-ecampus/nodejs-starter-app/tree/main/Step%204%20-%20Dynamically%20Displaying%20Data
+      4. https://github.com/osu-cs340-ecampus/nodejs-starter-app/tree/main/Step%205%20-%20Adding%20New%20Data
+      5. https://github.com/osu-cs340-ecampus/nodejs-starter-app/tree/main/Step%207%20-%20Dynamically%20Deleting%20Data 
+      6. https://github.com/osu-cs340-ecampus/nodejs-starter-app/tree/main/Step%208%20-%20Dynamically%20Updating%20Data
+    - Adaptation Details: lient-side use of `fetch()` for sending requests to API routes and handling responses was adapted from the Web Development modules, and integration of CRUD logic into the frontend using dynamic tables and forms was informed by both the repository.
+      1.  https://github.com/osu-cs340-ecampus/nodejs-starter-app/tree/main/Step%204%20-%20Dynamically%20Displaying%20Data
+      2. https://github.com/osu-cs340-ecampus/nodejs-starter-app/tree/main/Step%205%20-%20Adding%20New%20Data
+      3. https://github.com/osu-cs340-ecampus/nodejs-starter-app/tree/main/Step%207%20-%20Dynamically%20Deleting%20Data 
+      4. https://github.com/osu-cs340-ecampus/nodejs-starter-app/tree/main/Step%208%20-%20Dynamically%20Updating%20Data
+    - Adaptation Details: Integration of CRUD logic into the frontend using dynamic tables and forms was informed by both the repository.
+*/
+
+/*
+    Citation for Modal Integration
+    - Date: 12/1/2024
+    - Adapted from: W3Schools – How To Create a Modal Box
+    - Source URL: https://www.w3schools.com/howto/howto_css_modals.asp
+    - Adaptation Details: The structure and styling of modal boxes for displaying intersection tables, add data forms, and update data forms were modelled after the modal box example on W3Schools.
+*/
+
+/*
+    DOM Manipulation
+*/
+
 document.addEventListener('DOMContentLoaded', () => {
     const addAddressForm = document.getElementById('add-address-form-ajax');
     const addAddressModal = document.getElementById('add-address-modal');
@@ -87,8 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 inputCity.value = '';
                 inputState.value = '';
                 inputPostalCode.value = '';
-                
                 closeModal(addAddressModal);
+
             } else if (xhttp.readyState === 4 && xhttp.status !== 200) {
                 console.log('There was an error with the input.');
             }
@@ -115,21 +166,55 @@ function addRowToTable(data) {
     row.setAttribute('data-value', newRow.addressID);
 
     // Create table cells
-    row.innerHTML = `
-        <td>${newRow.addressID}</td>
-        <td>${newRow.customerID}</td>
-        <td>${newRow.customerName}</td> <!-- This ensures customerName is correctly placed -->
-        <td>${newRow.streetAddress}</td>
-        <td>${newRow.unit || 'N/A'}</td>
-        <td>${newRow.city}</td>
-        <td>${newRow.state}</td>
-        <td>${newRow.postalCode}</td>
-        <td>
-            <button id="update-address-button-${newRow.addressID}" data-address-id="${newRow.addressID}">Update</button>
-            <button id="delete-address-button-${newRow.addressID}" data-address-id="${newRow.addressID}">Delete</button>
-        </td>
-    `;
+    const addressIDCell = document.createElement('td');
+    const customerIDCell = document.createElement('td');
+    const customerNameCell = document.createElement('td');
+    const streetAddressCell = document.createElement('td');
+    const unitCell = document.createElement('td');
+    const cityCell = document.createElement('td');
+    const stateCell = document.createElement('td');
+    const postalCodeCell = document.createElement('td');
+    const actionsCell = document.createElement('td');
 
+    // Fill the cells with the correct data
+    addressIDCell.innerText = newRow.addressID;
+    customerIDCell.innerText = newRow.customerID;
+    customerNameCell.innerText = newRow.customerName;
+    streetAddressCell.innerText = newRow.streetAddress;
+    unitCell.innerText = newRow.unit || 'N/A';
+    cityCell.innerText = newRow.city;
+    stateCell.innerText = newRow.state;
+    postalCodeCell.innerText = newRow.postalCode;
+
+    // Create Update and Delete buttons
+    const updateButton = document.createElement('button');
+    updateButton.id = `update-address-button-${newRow.addressID}`;
+    updateButton.dataset.addressId = newRow.addressID;
+    updateButton.innerText = 'Update';
+    updateButton.addEventListener('click', () => openUpdateAddressModal(newRow.addressID));
+
+    const deleteButton = document.createElement('button');
+    deleteButton.id = `delete-address-button-${newRow.addressID}`;
+    deleteButton.dataset.addressId = newRow.addressID;
+    deleteButton.innerText = 'Delete';
+    deleteButton.addEventListener('click', () => confirmAndDeleteAddress(newRow.addressID));
+
+    // Add buttons to the actions cell
+    actionsCell.appendChild(updateButton);
+    actionsCell.appendChild(deleteButton);
+
+    // Append cells to the row
+    row.appendChild(addressIDCell);
+    row.appendChild(customerIDCell);
+    row.appendChild(customerNameCell);
+    row.appendChild(streetAddressCell);
+    row.appendChild(unitCell);
+    row.appendChild(cityCell);
+    row.appendChild(stateCell);
+    row.appendChild(postalCodeCell);
+    row.appendChild(actionsCell);
+
+    // Append row to the table
     currentTable.appendChild(row);
 
     console.log("Row added successfully:", row); // Debugging successful row addition
