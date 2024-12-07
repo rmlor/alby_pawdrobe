@@ -1,136 +1,170 @@
-// Get the objects we need to modify
-let addAddressForm = document.getElementById('add-address-form-ajax');
+document.addEventListener('DOMContentLoaded', () => {
+    const addAddressForm = document.getElementById('add-address-form-ajax');
+    const addAddressModal = document.getElementById('add-address-modal');
 
-// Modify the objects we need
-addAddressForm.addEventListener("submit", function (e) {
-    
-    // Prevent the form from submitting
-    e.preventDefault();
+    // Open Add Address Modal
+    document.getElementById('add-address-button').addEventListener('click', () => {
+        openModal(addAddressModal);
+    });
 
-    // Get form fields we need to get data from
-    let inputCustomerID = document.getElementById("input-customerID");
-    let inputStreetAddress = document.getElementById("input-streetAddress");
-    let inputUnit = document.getElementById("input-unit");
-    let inputCity = document.getElementById("input-city");
-    let inputState = document.getElementById("input-state");
-    let inputPostalCode = document.getElementById("input-postalCode");
+    // Close Modal on Cancel or Close Button
+    document.querySelectorAll('.close-modal').forEach(button => {
+        button.addEventListener('click', () => closeModal(button.dataset.modalId));
+    });
+    document.getElementById('cancel-add-address').addEventListener('click', () => {
+        addAddressForm.reset();
+        closeModal(addAddressModal);
+    });
 
-    console.log(inputCustomerID)
+    // Handle Add Address Form Submission
+    addAddressForm.addEventListener('submit', function (e) {
+        e.preventDefault();
 
-    // Get the values from the form fields
-    let customerIDValue = inputCustomerID.value;
-    let streetAddressValue = inputStreetAddress.value;
-    let unitValue = inputUnit.value;
-    let cityValue = inputCity.value;
-    let stateValue = inputState.value;
-    let postalCodeValue = inputPostalCode.value;
+        // Get form fields
+        const inputCustomerID = document.getElementById('input-customerID');
+        const inputStreetAddress = document.getElementById('input-streetAddress');
+        const inputUnit = document.getElementById('input-unit');
+        const inputCity = document.getElementById('input-city');
+        const inputState = document.getElementById('input-state');
+        const inputPostalCode = document.getElementById('input-postalCode');
 
+        // Get values
+        const customerIDValue = inputCustomerID.value.trim();
+        const streetAddressValue = inputStreetAddress.value.trim();
+        const unitValue = inputUnit.value.trim();
+        const cityValue = inputCity.value.trim();
+        const stateValue = inputState.value.trim();
+        const postalCodeValue = inputPostalCode.value.trim();
 
-    // Put our data we want to send in a javascript object
-    let data = {
-        customerID: customerIDValue,
-        streetAddress: streetAddressValue,
-        unit: unitValue,
-        city: cityValue,
-        state: stateValue,
-        postalCode: postalCodeValue
-    }
-    
-    console.log(data)
-
-    // Setup our AJAX request
-    var xhttp = new XMLHttpRequest();
-    xhttp.open("POST", "/add-address-ajax", true);
-    xhttp.setRequestHeader("Content-type", "application/json");
-
-    // Tell our AJAX request how to resolve
-    xhttp.onreadystatechange = () => {
-        if (xhttp.readyState == 4 && xhttp.status == 200) {
-
-            // Add the new data to the table
-            addRowToTable(xhttp.response);
-
-            // Clear the input fields for another transaction
-            inputCustomerID.value = '';
-            inputStreetAddress.value = '';
-            inputUnit.value = '';
-            inputCity.value = '';
-            inputState.value = '';
-            inputPostalCode.value = '';
+        // Validation
+        if (!customerIDValue) {
+            alert('Customer ID is required.');
+            return;
         }
-        else if (xhttp.readyState == 4 && xhttp.status != 200) {
-            console.log("There was an error with the input.")
+        if (!streetAddressValue) {
+            alert('Street Address is required.');
+            return;
         }
+        if (!cityValue) {
+            alert('City is required.');
+            return;
+        }
+        if (!stateValue) {
+            alert('State is required.');
+            return;
+        }
+        if (!postalCodeValue || isNaN(postalCodeValue)) {
+            alert('Valid Postal Code is required.');
+            return;
+        }
+
+        // Prepare data to send
+        const data = {
+            customerID: customerIDValue,
+            streetAddress: streetAddressValue,
+            unit: unitValue,
+            city: cityValue,
+            state: stateValue,
+            postalCode: postalCodeValue,
+        };
+
+        console.log('Data being sent to server:', data);
+
+        // Setup AJAX Request
+        const xhttp = new XMLHttpRequest();
+        xhttp.open('POST', '/add-address-ajax', true);
+        xhttp.setRequestHeader('Content-type', 'application/json');
+
+        xhttp.onreadystatechange = () => {
+            if (xhttp.readyState === 4 && xhttp.status === 200) {
+                // Add the new data to the table
+                addRowToTable(xhttp.response);
+
+                // Clear the form and close the modal
+                inputCustomerID.value = '';
+                inputStreetAddress.value = '';
+                inputUnit.value = '';
+                inputCity.value = '';
+                inputState.value = '';
+                inputPostalCode.value = '';
+                
+                closeModal(addAddressModal);
+            } else if (xhttp.readyState === 4 && xhttp.status !== 200) {
+                console.log('There was an error with the input.');
+            }
+        };
+
+        // Send the request
+        xhttp.send(JSON.stringify(data));
+    });
+});
+
+function addRowToTable(data) {
+    const currentTable = document.getElementById('addresses-table').querySelector('tbody');
+    const parsedData = JSON.parse(data);
+    const newRow = parsedData[0]; // Fetch the first item from the parsed array
+
+    console.log("Parsed Data:", parsedData); // Debugging parsed data
+    if (!newRow) {
+        console.error("No new row data found in the server response.");
+        return;
     }
 
-    // Send the request and wait for the response
-    xhttp.send(JSON.stringify(data));
+    // Create a new table row
+    const row = document.createElement('tr'); // Correctly define 'row'
+    row.setAttribute('data-value', newRow.addressID);
 
-})
+    // Create table cells
+    const addressIDCell = document.createElement('td');
+    const customerIDCell = document.createElement('td');
+    const customerNameCell = document.createElement('td');
+    const streetAddressCell = document.createElement('td');
+    const unitCell = document.createElement('td');
+    const cityCell = document.createElement('td');
+    const stateCell = document.createElement('td');
+    const postalCodeCell = document.createElement('td');
+    const actionsCell = document.createElement('td');
 
-
-// Creates a single row from an Object representing a single record from Addresses
-addRowToTable = (data) => {
-
-    // Get a reference to the current table on the page and clear it out.
-    let currentTable = document.getElementById("addresses-table");
-
-    // Get the location where we should insert the new row (end of table)
-    let newRowIndex = currentTable.rows.length;
-
-    // Get a reference to the new row from the database query (last object)
-    let parsedData = JSON.parse(data);
-    let newRow = parsedData[parsedData.length - 1]
-
-    // Create a row and 4 cells
-    let row = document.createElement("TR");
-    let addressIDCell = document.createElement("TD");
-    let customerIDCell = document.createElement("TD");
-    let streetAddressCell = document.createElement("TD");
-    let unitCell = document.createElement("TD");
-    let cityCell = document.createElement("TD");
-    let stateCell = document.createElement("TD");
-    let postalCodeCell = document.createElement("TD");
-
-    let deleteCell = document.createElement("TD");
-
-    // Fill the cells with correct data
+    // Fill the cells with the correct data
     addressIDCell.innerText = newRow.addressID;
     customerIDCell.innerText = newRow.customerID;
+    customerNameCell.innerText = newRow.customerName;
     streetAddressCell.innerText = newRow.streetAddress;
-    unitCell.innerText = newRow.unit;
+    unitCell.innerText = newRow.unit || 'N/A';
     cityCell.innerText = newRow.city;
     stateCell.innerText = newRow.state;
     postalCodeCell.innerText = newRow.postalCode;
 
-    deleteCell = document.createElement("button");
-    deleteCell.innerHTML = "Delete";
-    deleteCell.onclick = function(){
-        deleteAddress(newRow.addressID);
-        deleteAddress(newRow.addressID);
-    };
+    // Create Update and Delete buttons
+    const updateButton = document.createElement('button');
+    updateButton.id = `update-address-button-${newRow.addressID}`;
+    updateButton.dataset.addressId = newRow.addressID;
+    updateButton.innerText = 'Update';
+    updateButton.addEventListener('click', () => openUpdateAddressModal(newRow.addressID));
 
-    // Add the cells to the row 
+    const deleteButton = document.createElement('button');
+    deleteButton.id = `delete-address-button-${newRow.addressID}`;
+    deleteButton.dataset.addressId = newRow.addressID;
+    deleteButton.innerText = 'Delete';
+    deleteButton.addEventListener('click', () => confirmAndDeleteAddress(newRow.addressID));
+
+    // Add buttons to the actions cell
+    actionsCell.appendChild(updateButton);
+    actionsCell.appendChild(deleteButton);
+
+    // Append cells to the row
     row.appendChild(addressIDCell);
     row.appendChild(customerIDCell);
+    row.appendChild(customerNameCell);
     row.appendChild(streetAddressCell);
     row.appendChild(unitCell);
     row.appendChild(cityCell);
     row.appendChild(stateCell);
     row.appendChild(postalCodeCell);
-    row.appendChild(deleteCell);
+    row.appendChild(actionsCell);
 
-    // Add a row attribute so the deleteRow function can find a newly added row
-    row.setAttribute('data-value', newRow.addressID);
-    
-    // Add the row to the table
+    // Append row to the table
     currentTable.appendChild(row);
 
-    let selectMenu = document.getElementById("selectAddress");
-    let option = document.createElement("option");
-    option.text = newRow.streetAddress+ ', ' +  newRow.unit + ', ' +  newRow.city + ', ' +  newRow.state + ', ' +  newRow.postalCode;
-    option.value = newRow.addressID;
-    selectMenu.add(option);
-
-
+    console.log("Row added successfully:", row); // Debugging successful row addition
 }

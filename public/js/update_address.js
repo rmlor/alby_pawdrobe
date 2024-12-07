@@ -1,124 +1,173 @@
-// Get the objects we need to modify
-let updateAddressForm = document.getElementById('update-address-form-ajax');
+document.addEventListener('DOMContentLoaded', () => {
+    const updateAddressForm = document.getElementById('update-address-form-ajax');
+    const updateAddressModal = document.getElementById('update-address-modal');
 
-// Modify the objects we need
-updateAddressForm.addEventListener("submit", function (e) {
-   
-    console.log('Form submitted');
+    // Attach event listeners to all Update buttons
+    document.querySelectorAll('[id^="update-address-button-"]').forEach(button => {
+        button.addEventListener('click', function () {
+            const addressID = this.dataset.addressId;
+            if (addressID) {
+                openUpdateAddressModal(addressID);
+            } else {
+                console.error("Address ID is missing on the button.");
+            }
+        });
+    });
 
-    // Prevent the form from submitting
-    e.preventDefault();
+    // Close the modal on "Cancel" or close button
+    document.querySelectorAll('.close-modal').forEach(button => {
+        button.addEventListener('click', () => closeModal(button.dataset.modalId));
+    });
 
-    // Get form fields we need to get data from
-    let inputAddressID = document.getElementById("selectAddress");
-    let inputStreetAddress = document.getElementById("input-streetAddress-update");
-    let inputUnit = document.getElementById("input-unit-update");
-    let inputCity = document.getElementById("input-city-update");
-    let inputState = document.getElementById("input-state-update");
-    let inputPostalCode = document.getElementById("input-postalCode-update");
+    document.getElementById('cancel-update-address').addEventListener('click', () => {
+        if (updateAddressForm) {
+            updateAddressForm.reset();
+        }
+        closeModal(updateAddressModal);
+    });
 
+    // Handle form submission for updating an address
+    if (updateAddressForm) {
+        updateAddressForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            updateAddress();
+        });
+    }
+});
+/**
+ * Opens the update modal and populates it with the selected address's data.
+ * @param {number} addressID - The ID of the address to update.
+ */
+function openUpdateAddressModal(addressID) {
+    const table = document.getElementById('addresses-table');
 
-    // Get the values from the form fields
-    let addressIDValue = inputAddressID.value;
-    let streetAddressValue = inputStreetAddress.value;
-    let unitValue = inputUnit.value;
-    let cityValue = inputCity.value;
-    let stateValue = inputState.value;
-    let postalCodeValue = inputPostalCode.value;
-
-    console.log("Address ID:", inputAddressID.value); 
-    console.log("Street Address:", inputStreetAddress.value); 
-    console.log("Unit:", inputUnit.value); 
-    console.log("City:", inputCity.value); 
-    console.log("State:", inputState.value); 
-    console.log("Postal Code:", inputPostalCode.value);
-    
-    // currently the database table for bsg_people does not allow updating values to NULL
-    // so we must abort if being bassed NULL for homeworld
-
-    if (isNaN(unitValue)) 
-    {
-        unitValue = 'NULL';
+    if (!table) {
+        console.error("Table element with ID 'addresses-table' not found.");
+        return;
     }
 
-    // Put our data we want to send in a javascript object
-    let data = {
-        addressID: addressIDValue,
-        streetAddress: streetAddressValue,
-        unit: unitValue,
-        city: cityValue,
-        state: stateValue,
-        postalCode: postalCodeValue,
+    for (let i = 0, row; (row = table.rows[i]); i++) {
+        if (row.getAttribute('data-value') == addressID) {
+            const streetAddress = row.cells[3]?.innerText || '';
+            const unit = row.cells[4]?.innerText || '';
+            const city = row.cells[5]?.innerText || '';
+            const state = row.cells[6]?.innerText || '';
+            const postalCode = row.cells[7]?.innerText || '';
+
+            // Update modal fields
+            document.getElementById('addressID').value = addressID;
+            document.getElementById('input-streetAddress-update').value = streetAddress;
+            document.getElementById('input-unit-update').value = unit;
+            document.getElementById('input-city-update').value = city;
+            document.getElementById('input-state-update').value = state;
+            document.getElementById('input-postalCode-update').value = postalCode;
+
+            // Update modal header
+            const updateAddressIDSpan = document.getElementById('updateAddressID');
+            if (updateAddressIDSpan) {
+                updateAddressIDSpan.textContent = addressID;
+            }
+
+            openModal('update-address-modal');
+            return; // Exit the loop
+        }
     }
 
-    console.log(data)
-    
-    // Setup our AJAX request
-    var xhttp = new XMLHttpRequest();
+    console.error(`No row found for address ID: ${addressID}`);
+}
+
+/**
+ * Sends the updated address details to the server.
+ */
+function updateAddress() {
+    const addressID = document.getElementById('addressID').value.trim();
+    const streetAddress = document.getElementById('input-streetAddress-update').value.trim();
+    const unit = document.getElementById('input-unit-update').value.trim();
+    const city = document.getElementById('input-city-update').value.trim();
+    const state = document.getElementById('input-state-update').value.trim();
+    const postalCode = document.getElementById('input-postalCode-update').value.trim();
+
+    // Debugging
+    console.log('Address ID:', addressID);
+    console.log('Street Address:', streetAddress, 'Unit:', unit, 'City:', city, 'State:', state, 'Postal Code:', postalCode);
+
+    if (!addressID || isNaN(addressID)) {
+        alert('Invalid Address ID.');
+        return;
+    }
+    if (!streetAddress) {
+        alert('Street Address is required.');
+        return;
+    }
+    if (!city) {
+        alert('City is required.');
+        return;
+    }
+    if (!state) {
+        alert('State is required.');
+        return;
+    }
+    if (!postalCode || isNaN(postalCode)) {
+        alert('Valid Postal Code is required.');
+        return;
+    }
+
+    const data = {
+        addressID: parseInt(addressID, 10),
+        streetAddress,
+        unit: unit || null, // Allow null if no unit provided
+        city,
+        state,
+        postalCode,
+    };
+
+    const xhttp = new XMLHttpRequest();
     xhttp.open('PUT', '/put-address-ajax', true);
-    xhttp.setRequestHeader("Content-type", "application/json");
+    xhttp.setRequestHeader('Content-type', 'application/json');
 
-    // Tell our AJAX request how to resolve
-    xhttp.onreadystatechange = () => {
-        if (xhttp.readyState == 4 && xhttp.status == 200) {
+    xhttp.onreadystatechange = function () {
+        if (xhttp.readyState === 4 && xhttp.status === 200) {
 
-            // Add the new data to the table
-            updateRow(xhttp.response, addressIDValue);
+            // Update the table with the new address data
+            updateAddressRow(xhttp.response, addressID);
 
+            // Reset the form and close the modal
+            document.getElementById('addressID').value = '';
+            document.getElementById('input-streetAddress-update').value = '';
+            document.getElementById('input-unit-update').value = '';
+            document.getElementById('input-city-update').value = '';
+            document.getElementById('input-state-update').value = '';
+            document.getElementById('input-postalCode-update').value = '';
+            
+            closeModal('update-address-modal');
+        } else if (xhttp.readyState === 4) {
+            alert('Failed to update address. Please try again.');
+            console.error('Error updating address:', xhttp.responseText);
         }
-        else if (xhttp.readyState == 4 && xhttp.status != 200) {
-            console.log("There was an error with the input.")
-        }
-    }
+    };
 
-    // Send the request and wait for the response
     xhttp.send(JSON.stringify(data));
+}
 
-})
+/**
+ * Updates a specific address's row in the table.
+ * @param {string} data - JSON response string containing updated address details.
+ * @param {number} addressID - The ID of the address to update.
+ */
+function updateAddressRow(data, addressID) {
+    const parsedData = JSON.parse(data);
+    const updatedAddress = parsedData[0]; // Assuming the response returns the updated address object
+    const table = document.getElementById('addresses-table');
 
-
-function updateRow(data, addressID){
-    let parsedData = JSON.parse(data);
-    
-    let table = document.getElementById("addresses-table");
-
-    for (let i = 0, row; row = table.rows[i]; i++) {
-       //iterate through rows
-       //rows would be accessed using the "row" variable assigned in the for loop
-       if (table.rows[i].getAttribute("data-value") == addressID) {
-
-            // Get the location of the row where we found the matching person ID
-            let updateRowIndex = table.getElementsByTagName("tr")[i];
-
-            // Get td of street address value
-            let td_streetAddress = updateRowIndex.getElementsByTagName("td")[2];
-
-            // Reassign street address  to our value we updated to
-            td_streetAddress.innerHTML = parsedData[0].streetAddress; 
-
-            // Get td of unit value
-            let td_unit = updateRowIndex.getElementsByTagName("td")[3];
-
-            // Reassign unit to our value we updated to
-            td_unit.innerHTML = parsedData[0].unit; 
-
-            // Get td of city value
-            let td_city = updateRowIndex.getElementsByTagName("td")[4];
-
-            // Reassign city to our value we updated to
-            td_city.innerHTML = parsedData[0].city; 
-
-            // Get td of state value
-            let td_state = updateRowIndex.getElementsByTagName("td")[5];
-
-            // Reassign state to our value we updated to
-            td_state.innerHTML = parsedData[0].state; 
-
-            // Get td of postal code value
-            let td_postalCode = updateRowIndex.getElementsByTagName("td")[6];
-
-            // Reassign postal code to our value we updated to
-            td_postalCode.innerHTML = parsedData[0].postalCode; 
-       }
+    for (let i = 0, row; (row = table.rows[i]); i++) {
+        if (row.getAttribute('data-value') == addressID) {
+            // Update the table with the new data
+            row.cells[2].innerText = updatedAddress.streetAddress;
+            row.cells[3].innerText = updatedAddress.unit || 'N/A';
+            row.cells[4].innerText = updatedAddress.city;
+            row.cells[5].innerText = updatedAddress.state;
+            row.cells[6].innerText = updatedAddress.postalCode;
+            break;
+        }
     }
 }

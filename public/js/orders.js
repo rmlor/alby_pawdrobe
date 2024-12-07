@@ -124,10 +124,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Load and display data
-    fetchOrders();                                                      //Orders table
-    populateDropdown('/api/drop/dogs', 'dogID', 'id', 'name');               //dogID for Orders management
-    populateDropdown('/api/drop/addresses', 'addressID', 'id', 'label');     //addressID for Orders management
-    populateDropdown('/api/drop/products', 'productID', 'id', 'name');       //productID for Order_Products management
+    fetchOrders();                                                           // Orders table
+    populateDropdown('/api/drop/dogs', 'dogID', 'id', 'name');               // dogID for Orders management
+    populateDropdown('/api/drop/addresses', 'addressID', 'id', 'label');     // addressID for Orders management
+    populateDropdown('/api/drop/products', 'productID', 'id', 'name');       // productID for Order_Products management
 });
 
 /* 
@@ -277,7 +277,7 @@ function createOrder() {
         orderCustomRequest: formData.get('orderCustomRequest') || null,
         orderStatus: formData.get('orderStatus'),
         orderShippedDate: formData.get('orderShippedDate') || null,
-        orderDeliveredDate: formData.get('orderDeliveredDate') || null,
+        orderDeliveredDate: formData.get('orderDeliveredDate') || null
     };
 
     // POST route for new order
@@ -589,8 +589,17 @@ function updateOrderModal(orderID) {
             // Populate form fields
             document.getElementById('orderID').value = orderData.orderID;
             document.getElementById('updateGiftNote').value = orderData.orderGiftNote || '';
-            document.getElementById('updateCustomRequest').value = orderData.orderCustomRequest || '';
-            document.getElementById('updateOrderStatus').value = orderData.orderStatus || '';
+            // Custom Request Dropdown
+            const customRequestSelect = document.getElementById('updateCustomRequest');
+            Array.from(customRequestSelect.options).forEach(option => {
+                option.selected = option.value.toLowerCase() === (orderData.orderCustomRequest || '').toLowerCase();
+            });
+
+            // Order Status Dropdown
+            const orderStatusSelect = document.getElementById('updateOrderStatus');
+            Array.from(orderStatusSelect.options).forEach(option => {
+                option.selected = option.value.toLowerCase() === (orderData.orderStatus || '').toLowerCase();
+            });
             document.getElementById('updateShippedDate').value = orderData.orderShippedDate || '';
             document.getElementById('updateDeliveredDate').value = orderData.orderDeliveredDate || '';
 

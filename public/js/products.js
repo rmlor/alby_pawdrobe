@@ -153,12 +153,12 @@ function createProduct() {
         productColorStyle: formData.get('productColorStyle'),
         productLiningMaterial: formData.get('productLiningMaterial'),
         productFillingMaterial: formData.get('productFillingMaterial') || null,
-        productBasePrice: parseFloat(formData.get('productBasePrice')),
+        productBasePrice: parseFloat(formData.get('productBasePrice'))
     };
     // POST request to add a product
     fetch('/api/products/add', {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify(productData),
     })
         // Handle API response

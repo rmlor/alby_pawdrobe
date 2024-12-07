@@ -1,3 +1,31 @@
+// app.js - main entry point for setting up the AlbyPawsDB application and routes for CRUD operations
+
+/*
+    Project: Alby's Custom Pawdrobe (AlbyPawsDB)
+    Team: Alby Fanatics (Ruth Lor and Nhu Dang)
+
+    APP SETUP
+    - SERVER - Node.js Express server for routing and handling HTTP requests
+    - DATABASE - MySQL database for storing application data
+    - MIDDLEWARE - Express middleware for parsing JSON, handling static files, and URL-encoded data
+    - HANDLEBARS - Templating engine for dynamic HTML rendering of UI routes
+
+    ROUTE SETUP
+    - UI ROUTES - Render Handlerbars views for Customers, Dogs, Addresses, Breeds, Products, and Orders pages
+    - API ROUTES - Handle GET, POST, PUT, and DELETE requests for CRUD operations
+    - API ROUTES - Handle GET requests for dynamic dropdowns used in forms
+
+    API REQUEST TYPES & REQUEST HANDLING METHODS
+    - Customers - AJAX Requests via XMLHttpRequest 
+    - Dogs - Fetch Requests via Fetch API
+    - Addresses - AJAX Requests via XMLHttpRequest 
+    - Breeds - Fetch Requests via Fetch API
+    - Products - Fetch Requests via Fetch API
+    - Orders - Fetch Requests via Fetch API
+    - Dog_Breeds - Fetch Requests via Fetch API
+    - Order_Products - Fetch Requests via Fetch API
+*/
+
 /*
     Citation for Express Server, Middleware, and Listener Initializations
     - Date: 12/1/2024
@@ -65,37 +93,48 @@
 */
 
 /*
-    SETUP - Server, Database, Middleware, Handlebars
+    SETUP - SERVER, DATABASE, MIDDLEWARES, HANDLEBARS
 */
 
 // Server
 const express = require('express');
 const app = express();
-const PORT = 4890;
+const PORT = 4189;
 
 // Database
 const db = require('./database/db-connector');
 
-// App (Middleware)
+// Middlewares 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(express.static('public'));
 
 // Handlebars
-const { engine } = require('express-handlebars');
+const {engine} = require('express-handlebars');
 var exphbs = require('express-handlebars');     
 app.engine('.hbs', engine({extname: ".hbs"})); 
 app.set('view engine', '.hbs');             
 
 /* 
-    UI ROUTES - Render Pages
+    UI ROUTES - RENDER HOME PAGE, CUSTOMERS PAGE, DOGS PAGE, ADDRESSES PAGE, BREEDS PAGE, PRODUCTS PAGE, ORDERS PAGE
 */
 
-// Home page 
+// HOME PAGE
 app.get('/', (req, res) => {
-    res.redirect('/orders');
+    res.render('index');
 });
 
+// CUSTOMERS PAGE
+app.get('/customers', function(req, res)
+{  
+    let selectCustomers = "SELECT * FROM Customers;";                // Define our query
+
+    db.pool.query(selectCustomers, function(error, rows, fields){    // Execute the query
+        res.render('customers', {data: rows});                       // Render the index.hbs file, and also send the renderer
+    })                
+});
+
+// DOGS PAGE
 app.get('/dogs', (req, res) => {
     const query = `SELECT dogID AS id, dogName AS name FROM Dogs`;
 
@@ -104,10 +143,62 @@ app.get('/dogs', (req, res) => {
             console.error("Error fetching dogs:", error);
             return res.status(500).json({error: "Failed to fetch dogs"});
         }
-        res.json(results);
+        res.render('dogs', {data: results});
     });
 });
 
+// ADDRESSES PAGE
+app.get('/addresses', function (req, res) {                          // GET route to fetch and render the addresses page
+    // Query to fetch addresses along with customer names
+    const selectAddresses = `
+        SELECT 
+            Addresses.addressID,
+            Addresses.customerID,
+            Customers.customerName,
+            Addresses.streetAddress,
+            Addresses.unit,
+            Addresses.city,
+            Addresses.state,
+            Addresses.postalCode
+        FROM Addresses
+        LEFT JOIN Customers ON Addresses.customerID = Customers.customerID`;
+
+    // Query to fetch all customers for dropdowns
+    const selectCustomers = `SELECT customerID, customerName FROM Customers;`;
+
+    // Fetch addresses with customer names
+    db.pool.query(selectAddresses, function (error, addressRows) {
+        if (error) {
+            console.error('Error fetching addresses:', error);
+            return res.status(500).send('Failed to fetch addresses');
+        }
+        // Fetch customers for dropdowns
+        db.pool.query(selectCustomers, function (error, customerRows) {
+            if (error) {
+                console.error('Error fetching customers:', error);
+                return res.status(500).send('Failed to fetch customers');
+            }
+            // Render the page with addresses and customers
+            res.render('addresses', {
+                data: addressRows, // Address rows with customer names
+                customers: customerRows // Customers for dropdowns
+            });
+        });
+    });
+});
+
+// BREEDS PAGE
+app.get('/breeds', function(req, res)
+{  
+    let selectBreeds = "SELECT * FROM Breeds;";               // Define our query
+
+    db.pool.query(selectBreeds, function(error, rows, fields){    // Execute the query
+
+        res.render('breeds', {data: rows});                  // Render the index.hbs file, and also send the renderer
+    })                
+});  
+
+// PRODUCTS PAGE
 app.get('/products', (req, res) => {
     const query = `SELECT * FROM Products`;
     
@@ -119,6 +210,8 @@ app.get('/products', (req, res) => {
         res.render('products', {data: results});
     });
 });
+
+// ORDERS PAGE
 app.get('/orders', (req, res) => {
     const query = `
         SELECT 
@@ -130,7 +223,7 @@ app.get('/orders', (req, res) => {
         LEFT JOIN Dogs d ON o.dogID = d.dogID
         LEFT JOIN Customers c ON d.customerID = c.customerID
         LEFT JOIN Addresses a ON o.addressID = a.addressID;`;
-    
+
     db.pool.query(query, (error, results) => {
         if (error) {
             console.error("Error fetching orders:", error);
@@ -140,46 +233,1073 @@ app.get('/orders', (req, res) => {
     });
 });
 
-app.get('/customers', function(req, res)
-{  
-    let selectCustomers = "SELECT * FROM Customers;";               
-
-    db.pool.query(selectCustomers, function(error, rows, fields){    
-
-        res.render('customers', {data: rows});            
-    })                
-});
-
-
-app.get('/addresses', function(req, res)
-{  
-    let selectAddresses = "SELECT * FROM Addresses;";  
-
-    let selectCustomers = "SELECT * FROM Customers;";
-
-
-    db.pool.query(selectAddresses, function(error, rows, fields){
-        
-        let address = rows;
-        
-        db.pool.query(selectCustomers, (error, rows, fields) => {
-            
-            let customers = rows;
-
-            console.log('Addresses:', address);
-            console.log('Customers:', customers);
-
-            return res.render('addresses', {data: address, customers: customers});
-        })               
-})
-});
-
-
 /*
-    API ROUTES - Dynamic Dropdowns (JSON)
+    API ROUTES - DATA FOR CRUD OPERATIONS
 */
 
-// Addresses for Orders forms
+// POST - CUSTOMERS (HANDLING METHOD: XMLHttpRequest, EXTRACTION: FULL-BODY, QUERIES: PARAMETERIZED)
+app.post('/add-customer-ajax', function(req, res) {
+    // Capture and return incoming data from request body to be used in SQL query
+    let data = req.body;
+    console.log(data)
+
+    // Define SQL queries 
+    insertQuery = `INSERT INTO Customers (customerName, customerEmail, customerPhone) VALUES (?, ?, ?)`;
+    selectQuery = `SELECT * FROM Customers`;
+
+    // Execute nested SQL queries 
+    db.pool.query(insertQuery,                                               // INSERT query for adding new record in backend database
+                [data.customerName, data.customerEmail, data.customerPhone], 
+                function(error, rows, fields) {           
+        // Handle API error
+        if (error) {
+            console.log(error)
+            res.sendStatus(400);
+        // Handle API response
+        } else {
+            db.pool.query(selectQuery,                                      // SELECT query for retrieving data for client-side view
+                        [data.customerName, data.customerEmail, data.customerPhone],
+                        function(error, rows, fields) {       
+                if (error) {
+                    console.log(error);
+                    res.sendStatus(400);
+                } else {
+                    res.send(rows);
+                }
+            })
+        }
+    })
+});
+
+// PUT - CUSTOMERS (HANDLING METHOD: XMLHttpRequest, EXTRACTION: FULL-BODY, QUERIES: PARAMETERIZED)
+app.put('/put-customer-ajax', function(req, res, next) {
+    // Capture and return incoming data from request body to be used in SQL query
+    let data = req.body;
+    console.log(data)
+
+    // Extract and parse data from request body
+    let customerID = parseInt(data.customerID, 10); // Parse customerID as integer
+    let customerEmail = data.customerEmail;         // Extract customerEmail from request
+    let customerPhone = data.customerPhone;         // Extract customerPhone from request
+    // Validate date from request body
+    if (isNaN(customerID)) {
+        console.error('Invalid customerID:', data.customerID);
+        return res.status(400).json({error: 'Invalid customerID'}); 
+    }
+
+    // Define SQL queries
+    let updateQuery = `UPDATE Customers SET customerEmail = ?, customerPhone = ? WHERE Customers.customerID = ?`;
+    let selectQuery = `SELECT * FROM Customers WHERE Customers.customerID = ?`;
+
+    // Execute nested SQL queries (parameterized)
+    db.pool.query(updateQuery,                                                           // UPDATE query for updating (id) record in backend database
+                [customerEmail, customerPhone, customerID], 
+                function(error, rows, fields) {       
+        // Handle API error 
+        if (error) {
+            console.error('Error updating customer:', error);
+            res.sendStatus(400); 
+        } 
+        // Handle API response
+        else {
+            db.pool.query(selectQuery, [customerID], function(error, rows, fields) {    // SELECT query for retrieving data for client-side view                       
+                // Handle API error
+                if (error) {
+                    console.error('Error fetching updated customer:', error);
+                    res.sendStatus(400);
+                } 
+                // Handle API response
+                else {
+                    res.status(200).send(rows); 
+                }
+            });
+        }
+    });
+});
+
+// DELETE - CUSTOMERS (HANDLING METHOD: XMLHttpRequest, EXTRACTION: FULL-BODY, QUERIES: PARAMETERIZED)
+app.delete('/delete-customer-ajax/', function(req, res, next){
+    // Capture and return incoming data from request body to be used in SQL query
+    let data = req.body;
+    console.log(data)
+
+    // Extract and parse data from request body
+    let customerID = parseInt(data.id);
+    // Validate data from request body
+    if (isNaN(customerID)) {
+        console.error('Invalid customerID:', data.id);
+        return res.status(400).json({ error: 'Invalid customerID' });
+    }
+    
+    // Define SQL query
+    let deleteQuery = `DELETE FROM Customers WHERE customerID = ?`;
+
+    // Execute SQL query
+    db.pool.query(deleteQuery, [customerID], function(error, rows, fields)   {           // DELETE query for deleting (id) record in backend database
+        if (error) {
+            console.log(error);
+            res.sendStatus(400);
+        } else {
+            res.sendStatus(204);
+        }
+    })
+});
+
+
+
+// POST - ADDRESSES (HANDLING METHOD: XMLHttpRequest, EXTRACTION: FULL-BODY, QUERIES: PARAMETERIZED)
+app.post('/add-address-ajax', (req, res) => {
+    // Capture and return incoming data from request body to be used in SQL query
+    const data = req.body;
+    console.log(data)
+
+    // Define SQL queries
+    const insertQuery = `
+        INSERT INTO Addresses (customerID, streetAddress, unit, city, state, postalCode) 
+        VALUES (?, ?, ?, ?, ?, ?)`;
+    const selectQuery = `
+        SELECT Addresses.*, Customers.customerName 
+        FROM Addresses 
+        JOIN Customers ON Addresses.customerID = Customers.customerID 
+        WHERE Addresses.addressID = ?`;
+
+    // Execute nested SQL queries
+    db.pool.query(insertQuery,                                                                                              // INSERT query for adding new record in backend database
+                [data.customerID, data.streetAddress, data.unit || null, data.city, data.state, data.postalCode], 
+                function(error, rows, fields) {
+        if (error) {
+            console.error("Error inserting address:", error);
+            return res.status(400).send("Error inserting address.");
+        } else {
+            db.pool.query(selectQuery,                                                                                      // SELECT query for retrieving data for client-side view
+                        [results.insertId],
+                        (error, rows) => {
+                if (error) {
+                    console.error("Error fetching new address:", error);
+                    return res.status(400).send("Error fetching new address.");
+                } else {
+                res.json(rows); 
+                }
+            });
+        }
+    });
+});
+
+// PUT - ADDRESSES (HANDLING METHOD: XMLHttpRequest, EXTRACTION: FULL-BODY, QUERIES: PARAMETERIZED)
+app.put('/put-address-ajax', function (req, res) {
+    // Capture and return incoming data from request body to be used in SQL query
+    const data = req.body;
+    console.log(data)
+
+    // Extract and parse data from request body
+    let addressID = parseInt(data.addressID, 10);  // Parse addressID as an integer
+    let streetAddress = data.streetAddress;        // Extract streetAddress from request
+    let unit = data.unit;                          // Extract unit from request (can be NULL)
+    let city = data.city;                          // Extract city from request
+    let state = data.state;                        // Extract state from request
+    let postalCode = data.postalCode;              // Extract postalCode from request
+    // Validate data from request body
+    if (isNaN(addressID) || !streetAddress || !city || !state || !postalCode) {
+        console.error('Invalid or missing address data:', data);
+        return res.status(400).json({ error: 'Invalid or missing required fields' });
+    }
+
+    // Define SQL queries 
+    const updateQuery = `
+        UPDATE Addresses 
+        SET streetAddress = ?, unit = ?, city = ?, state = ?, postalCode = ?
+        WHERE addressID = ?`;
+    const selectQuery = `SELECT * FROM Addresses WHERE addressID = ?`;
+
+    // Execute nested SQL queries 
+    db.pool.query(updateQuery,                                                         // UPDATE query for updating (id) record in backend database
+                  [streetAddress, unit || null, city, state, postalCode, addressID], 
+                  function (error, rows, fields) {
+        // Handle API error 
+        if (error) {
+            console.error('Error updating address:', error);
+            res.sendStatus(400); 
+        } 
+        // Handle API response
+        else {
+            db.pool.query(selectQuery, [addressID], function (error, rows, fields) {   // SELECT query for retrieving data for client-side view
+                // Handle API error 
+                if (error) {
+                    console.error('Error fetching updated address:', error);
+                    res.sendStatus(400);
+                } 
+                // Handle API response
+                else {
+                    res.status(200).send(rows); 
+                }
+            });
+        }
+    });
+});
+
+// DELETE - ADDRESSES (HANDLING METHOD: XMLHttpRequest, EXTRACTION: FULL-BODY, QUERIES: PARAMETERIZED)
+app.delete('/delete-address-ajax/', function(req, res, next) {
+    // Capture and return incoming data from request body to be used in SQL query
+    let data = req.body;
+    console.log(data);
+
+    // Extract and parse data from request body
+    let addressID = parseInt(data.id, 10); // Parse addressID as an integer
+    // Validate data from request body
+    if (isNaN(addressID)) {
+        console.error('Invalid addressID:', data.id);
+        return res.status(400).json({ error: 'Invalid addressID' });
+    }
+
+    // Define SQL query
+    let deleteQuery = `DELETE FROM Addresses WHERE addressID = ?`;
+
+    // Execute SQL query
+    db.pool.query(deleteQuery, [addressID], function(error, rows, fields) {           // DELETE query for deleting (id) record in backend database
+        // Handle API error
+        if (error) {
+            console.error('Error deleting address:', error);
+            res.sendStatus(400);
+        } 
+        // Handle API response
+        else {
+            res.sendStatus(204); // No content
+        }
+    });
+});
+
+
+
+// GET - DOGS (HANDLING METHOD: FETCH API, EXTRACTION: NONE, QUERIES: PARAMETERIZED)
+app.get('/api/dogs', (req, res) => {
+    // Define SQL query
+    const selectQuery = `
+        SELECT 
+            d.dogID, c.customerID, d.dogName, c.customerName, 
+            d.upperNeckGirthIn, d.lowerNeckGirthIn, d.chestGirthIn, 
+            d.backLengthIn, d.heightLengthIn,
+            d.pawWidthIn, d.pawLengthIn
+        FROM Dogs d
+        LEFT JOIN Customers c ON d.customerID = c.customerID`;
+    
+    // Execute SQL query
+    db.pool.query(selectQuery, (error, results) => {
+        if (error) {
+            return res.status(500).json({error: "Failed to fetch dogs"}); 
+        } 
+        res.json(results);
+    });
+});
+
+// GET - DOGS (ID, HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.get('/api/dogs/:dogID', (req, res) => {
+    // Capture and return incoming data from request params to be used in SQL query
+    const {dogID} = req.params;
+    console.log(req.params)
+
+    // Define SQL query
+    const selectQuery = `
+        SELECT * 
+        FROM Dogs
+        WHERE dogID = ?`;
+
+    // Execute SQL query
+    db.pool.query(selectQuery, [dogID], (error, results) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to fetch dog"});
+        // Handle API response: NOT FOUND case
+        } else if (results.length === 0) {
+            return res.status(404).json({ error: "Dog not found" });
+        // Handle API response: FOUND case
+        } else {
+            res.json(results[0]);
+        }
+    });
+});
+
+// POST - DOGS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.post('/api/dogs/add', (req, res) => {  
+    // Capture and return incoming data from request body to be used in SQL query
+    const {
+        customerID, dogName, 
+        upperNeckGirthIn, lowerNeckGirthIn, chestGirthIn, 
+        backLengthIn, heightLengthIn, 
+        pawWidthIn, pawLengthIn
+    } = req.body;
+    console.log(req.body)
+
+    // Define SQL query
+    const insertQuery = `
+        INSERT INTO Dogs (customerID, dogName, 
+                        upperNeckGirthIn, lowerNeckGirthIn, chestGirthIn, 
+                        backLengthIn, heightLengthIn, 
+                        pawWidthIn, pawLengthIn)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+    db.pool.query(insertQuery,
+                    [customerID, dogName, 
+                    upperNeckGirthIn, lowerNeckGirthIn, chestGirthIn, 
+                    backLengthIn, heightLengthIn, 
+                    pawWidthIn, pawLengthIn],
+                (error, results) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to add dog"});
+        // Handle API response
+        } else {
+            res.status(201).json({message: "Dog added successfully"});
+        }
+    });
+});
+
+// PUT - DOGS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.put('/api/dogs/update/:dogID', (req, res) => {
+    // Capture and return incoming data from request params and request body to be used in SQL query
+    const {dogID} = req.params;
+    const {
+        customerID, dogName, 
+            upperNeckGirthIn, lowerNeckGirthIn, chestGirthIn, 
+            backLengthIn, heightLengthIn, 
+            pawWidthIn, pawLengthIn
+    } = req.body;
+    console.log(req.body)
+
+    // Define SQL query
+    const updateQuery = `
+        UPDATE Dogs
+        SET dogName =  ?, 
+            upperNeckGirthIn = ?, lowerNeckGirthIn = ?, chestGirthIn = ?, 
+            backLengthIn = ?, heightLengthIn = ?, 
+            pawWidthIn = ?, pawLengthIn = ?
+        WHERE dogID = ?`;
+
+    // Execute SQL query
+    db.pool.query(updateQuery,
+                [dogName, 
+                upperNeckGirthIn, lowerNeckGirthIn, chestGirthIn, 
+                backLengthIn, heightLengthIn, 
+                pawWidthIn, pawLengthIn, dogID],
+                (error) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to update dog"});
+        // Handle API response
+        } else {
+            res.status(200).json({message: "Dog updated successfully"}); 
+        }
+    });
+});
+
+// DELETE - DOGS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.delete('/api/dogs/delete/:dogID', (req, res) => {
+    // Capture and return incoming data from request params and request body to be used in SQL query
+    const {dogID} = req.params;
+    console.log(dogID)
+
+    // Define SQL query
+    const deleteQuery = `DELETE FROM Dogs WHERE dogID = ?`;
+
+    // Execute SQL query
+    db.pool.query(deleteQuery, [dogID], (error, results) => {
+        //Handle API error
+        if (error) {
+            res.status(500).send("Failed to delete dog");
+        // Handle API response
+        } else {
+            res.sendStatus(204); 
+        }
+    });
+});
+
+
+
+// GET - BREEDS (HANDLING METHOD: FETCH API, EXTRACTION: NONE, QUERIES: INLINE)
+app.get('/api/breeds', (req, res) => {
+    // Define SQL query
+    const selectQuery = `
+        SELECT 
+            breedID, 
+            breedName, 
+            breedCoatType, 
+            breedShedLevel
+        FROM Breeds`;
+
+    // Execute SQL query
+    db.pool.query(selectQuery, (error, results) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to fetch breed"}); 
+        }
+        // Handle API response
+        else {
+            res.json(results); 
+        }
+    });
+});
+
+// GET - BREEDS (ID, HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.get('/api/breeds/:breedID', (req, res) => {
+    // Capture and return incoming data from request body to be used in SQL query
+    const {breedID} = req.params;
+    console.log(breedID)
+
+    // Define SQL query
+    const selectQuery = `SELECT * FROM Breeds WHERE breedID = ?`;
+
+    // Execute SQL query 
+    db.pool.query(selectQuery, [breedID], (error, results) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to fetch breed"});
+        // Handle API response: NOT FOUND case
+        } else if (results.length === 0) {
+            return res.status(404).json({error: "Breed not found"});
+        // Handle API response: FOUND case
+        } else {
+            res.json(results[0]);
+        }
+    });
+});
+
+// POST - BREEDS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.post('/api/breeds/add', (req, res) => {
+    // Capture and return incoming data from request body to be used in SQL query
+    const {breedName, breedCoatType, breedShedLevel} = req.body;
+    console.log(req.body)
+
+    // Define SQL query
+    const insertQuery = `INSERT INTO Breeds (breedName, breedCoatType, breedShedLevel) VALUES (?, ?, ?)`;
+
+    // Execute SQL query
+    db.pool.query(insertQuery, [breedName, breedCoatType, breedShedLevel], (error, results) => {
+        // Handle API error
+        if (error) {
+            console.error('Error adding new breed:', error);
+            return res.status(500).json({ error: 'Failed to add new breed', details: error.message });
+        // Handle API response
+        } else {
+            res.json({message: 'Breed added successfully', breedID: results.insertId});
+        }
+    });
+});
+
+// PUT - BREEDS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.put('/api/breeds/update/:breedID', (req, res) => {
+    // Capture and return incoming data from request params and request body to be used in SQL query
+    const {breedID} = req.params;
+    const {breedName, breedCoatType, breedShedLevel} = req.body;
+    console.log(breedID);
+    console.log(req.body);
+
+    // Define SQL query
+    const updateQuery = `
+        UPDATE Breeds 
+        SET breedName = ?, breedCoatType = ?, breedShedLevel = ? 
+        WHERE breedID = ?`;
+    
+    // Execute SQL query
+    db.pool.query(updateQuery, [breedName, breedCoatType, breedShedLevel, breedID], (error, results) => {
+        // Handle API error
+        if (error) {
+            console.error("Error updating breed:", error);
+            return res.status(500).json({error: "Failed to update product"});
+        // Handle API response
+        } else {
+            res.status(200).json({message: "Breed updated successfully"}); 
+        }
+    });
+});
+
+// DELETE - BREEDS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.delete('/api/breeds/delete/:breedID', (req, res) => {
+    // Capture and return incoming data from request params to be used in SQL query
+    const {breedID}= req.params;
+    console.log(breedID)
+
+    // Define SQL query
+    const deleteQuery = 'DELETE FROM Breeds WHERE breedID = ?';
+
+    // Execute SQL query
+    db.pool.query(deleteQuery, [breedID], (error, results) => {
+        // Handle API error
+        if (error) {
+            console.error(`Error deleting breed with ID ${breedID}:`, error);
+            return res.status(500).json({error: 'Failed to delete breed'});
+        // Handle API response
+        } else {
+            res.status(204).send(); 
+        }
+    });
+});
+
+
+
+// GET - DOG_BREEDS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.get('/api/dogs/:dogID/breeds', (req, res) => {
+    // Capture and return incoming data from request params to be used in SQL query
+    const {dogID} = req.params;
+    console.log(dogID);
+
+    // Define SQL query
+    const selectQuery = `
+        SELECT 
+            db.dogBreedID, 
+            db.dogID, db.breedID, 
+            d.dogName AS dogName,
+            b.breedName AS breedName
+        FROM Dog_Breeds db
+        JOIN Dogs d ON db.dogID = d.dogID
+        JOIN Breeds b ON db.breedID = b.breedID
+        WHERE db.dogID = ?`;
+
+    // Execute SQL query
+    db.pool.query(selectQuery, [dogID], (error, results) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({ error: "Failed to fetch dog breeds" });
+        // Handle API response
+        } else {
+            res.json(results);
+        }
+    });
+});
+
+// GET - DOG_BREEDS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.get('/api/dog-breeds/:dogBreedID', (req, res) => {
+    // Capture and return incoming data from request params to be used in SQL query
+    const {dogBreedID} = req.params;
+    console.log(req.params)
+
+    // Define SQL query
+    const selectQuery = `
+        SELECT 
+            db.dogBreedID, 
+            db.dogID, 
+            db.breedID, 
+            d.dogName, 
+            b.breedName
+        FROM Dog_Breeds db
+        JOIN Dogs d ON db.dogID = d.dogID
+        JOIN Breeds b ON db.breedID = b.breedID
+        WHERE db.dogBreedID = ?;`
+
+    db.pool.query(selectQuery, [dogBreedID], (error, results) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to fetch dog breed"});
+        // Handle API response: NOT FOUND case
+        } else if (results.length === 0) {
+            return res.status(404).json({error: "Dog breed not found"});
+        // Handle API response: FOUND case
+        } else {
+            res.json(results[0]);
+        }
+    });
+});
+
+// POST - DOG_BREEDS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.post('/api/dog-breeds/add', (req, res) => {
+    // Capture and return incoming data from request body to be used in SQL query
+    const {dogID, breedID} = req.body;
+    console.log(req.body)
+
+    // Define SQL query
+    const insertQuery = `
+        INSERT INTO Dog_Breeds (dogID, breedID)
+        VALUES (?, ?)`;
+
+    // Execute SQL query
+    db.pool.query(insertQuery, [dogID, breedID], (error, results) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to add dog breed"});
+        // Handle API response
+        } else {
+            res.status(201).json({message: "Dog breed added successfully"});
+        }
+    });
+});
+
+// PUT - DOG_BREEDS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.put('/api/dog-breeds/update/:dogBreedID', (req, res) => {
+    // Capture and return incoming data from request params and request body to be used in SQL query
+    const {dogBreedID} = req.params;
+    const {breedID} = req.body;
+    console.log(req.params)
+    console.log(req.body)
+    if (!breedID) {
+        return res.status(400).json({ error: "breedID is required" });
+    }
+
+    // Define SQL query
+    const updateQuery = `
+        UPDATE Dog_Breeds
+        SET breedID = ?
+        WHERE dogBreedID = ?`;
+
+    // Execute SQL query
+    db.pool.query(updateQuery, [breedID, dogBreedID], (error) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to update dog breed"});
+        // Handle API response
+        } else {
+            res.status(200).json({message: "Dog breed updated successfully"});
+        }
+    });
+});
+
+// DELETE - DOG_BREEDS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.delete('/api/dog-breeds/delete/:dogBreedID', (req, res) => {
+    // Capture and return incoming data from request params to be used in SQL query
+    const {dogBreedID} = req.params;
+    console.log(dogBreedID)
+
+    // Define SQL query
+    const deleteQuery = `
+        DELETE FROM Dog_Breeds WHERE dogBreedID = ?`;
+
+    db.pool.query(deleteQuery, [dogBreedID], (error) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to delete dog breed"});
+        // Handle API response
+        } else {
+            res.sendStatus(204);
+        }
+    });
+});
+
+
+
+// GET - PRODUCTS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.get('/api/products', (req, res) => {
+    // Define SQL query
+    const selectQuery = `
+        SELECT 
+            productID, 
+            productName, 
+            productDescription, 
+            productType, 
+            productColorBase, 
+            productColorStyle, 
+            productLiningMaterial, 
+            productFillingMaterial, 
+            productBasePrice
+        FROM Products`;
+
+    // Execute SQL query
+    db.pool.query(selectQuery, (error, results) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to fetch products"}); 
+        // Handle API response
+        } else {
+            res.json(results); 
+        }
+    });
+});
+
+// GET - PRODUCTS (ID, HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.get('/api/products/:productID', (req, res) => {
+    // Capture and return incoming data from request params and request body to be used in SQL query
+    const {productID} = req.params;
+    console.log(productID)
+
+    // Define SQL query
+    const selectQuery = `
+        SELECT * 
+        FROM Products
+        WHERE productID = ?`;
+
+    // Execute SQL query
+    db.pool.query(selectQuery, [productID], (error, results) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to fetch product"});
+        // Handle API response: NOT FOUND case
+        } else if (results.length === 0) {
+            return res.status(404).json({error: "Product not found"});
+        // Handle API response: FOUND case
+        } else {
+            res.json(results[0]);
+        }
+    });
+});
+
+// POST - PRODUCTS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.post('/api/products/add', (req, res) => {          
+    // Capture and return incoming data from request body to be used in SQL query
+    const {
+        productName, productDescription, productType, 
+        productColorBase, productColorStyle, 
+        productLiningMaterial, productFillingMaterial, productBasePrice
+    } = req.body;
+    console.log(req.body)
+    
+    // Define SQL query
+    const insertQuery = `
+        INSERT INTO Products (productName, productDescription, productType, productColorBase, productColorStyle, productLiningMaterial, productFillingMaterial, productBasePrice)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+
+    // Execute SQL query
+    db.pool.query(insertQuery,
+                [productName, productDescription, productType, productColorBase, productColorStyle, productLiningMaterial, productFillingMaterial || null, productBasePrice],
+                (error, results) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to add product"});
+        // Handle API response
+        } else {
+            res.status(201).json({message: "Product added successfully"});
+        }
+    });
+});
+
+// PUT - PRODUCTS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.put('/api/products/update/:productID', (req, res) => {   
+    // Capture and return incoming data from request params and request body to be used in SQL query
+    const {productID} = req.params;
+    const {
+        productName, productDescription, productType, 
+        productColorBase, productColorStyle, 
+        productLiningMaterial, productFillingMaterial, productBasePrice
+    } = req.body;
+    console.log(productID);
+    console.log(req.body); 
+
+    // Define SQL query
+    const updateQuery = `
+        UPDATE Products
+        SET productName = ?, 
+            productDescription = ?, 
+            productType = ?, 
+            productColorBase = ?, 
+            productColorStyle = ?, 
+            productLiningMaterial = ?, 
+            productFillingMaterial = ?, 
+            productBasePrice = ?
+        WHERE productID = ?;`;
+
+    // Execute SQL query
+    db.pool.query(updateQuery,
+                [productName, productDescription, productType, productColorBase, productColorStyle, productLiningMaterial, productFillingMaterial || null, productBasePrice, productID],
+                (error) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to update product"});
+        // Handle API response
+        } else {
+        res.status(200).json({ message: "Product updated successfully" }); 
+        }
+    });
+});
+
+// DELETE - PRODUCTS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.delete('/api/products/delete/:productID', (req, res) => {
+    // Capture and return incoming data from request params to be used in SQL query
+    const {productID} = req.params;
+    console.log(productID);
+
+    // Define SQL query
+    const deleteQuery = `DELETE FROM Products WHERE productID = ?`;
+
+    // Execute SQL query
+    db.pool.query(deleteQuery, [productID], (error, results) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to delete product"});
+        // Handle API response
+        } else {
+            res.status(204).json({message: "Product deleted successfully"});
+        }
+    });
+});
+
+
+
+// GET - ORDERS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.get('/api/orders', (req, res) => {
+    // Define SQL query
+    const selectQuery = `
+        SELECT 
+            o.orderID,
+            c.customerID,
+            d.dogID,
+            a.addressID,
+            c.customerName,
+            d.dogName,
+            o.orderDate,
+            o.orderGiftNote,
+            o.orderCustomRequest,
+            o.orderStatus,
+            o.orderShippedDate,
+            o.orderDeliveredDate
+        FROM Orders o
+        LEFT JOIN Dogs d ON o.dogID = d.dogID
+        LEFT JOIN Customers c ON d.customerID = c.customerID
+        LEFT JOIN Addresses a ON o.addressID = a.addressID`;
+    
+    // Execute SQL query
+    db.pool.query(selectQuery, (error, results) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to fetch orders"}); 
+        // Handle API response
+        } else {
+            res.json(results);
+        }
+    });
+});
+
+// GET - ORDERS (ID, HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.get('/api/orders/:orderID', (req, res) => {
+    // Capture and return incoming data from request params to be used in SQL query
+    const {orderID} = req.params;
+    console.log(req.params)
+
+    // Define SQL query
+    const selectQuery = `
+        SELECT * 
+        FROM Orders 
+        WHERE orderID = ?`;
+
+    // Execute SQL query
+    db.pool.query(selectQuery, [orderID], (error, results) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to fetch order"});
+        // Handle API response: NOT FOUND case
+        } else if (results.length === 0) {
+            return res.status(404).json({ error: "Order not found" });
+        // Handle API response: FOUND case
+        } else {
+            res.json(results[0]);
+        }
+    });
+});
+
+// POST - ORDERS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.post('/api/orders/add', (req, res) => {  
+    // Capture and return incoming data from request body to be used in SQL query
+    const {
+        dogID, addressID, 
+        orderDate, orderGiftNote, orderCustomRequest, 
+        orderStatus, orderShippedDate, orderDeliveredDate,
+    } = req.body;
+    console.log(req.body)
+
+    // Define SQL query
+    const insertQuery = `
+        INSERT INTO Orders (dogID, addressID, orderDate, orderGiftNote, orderCustomRequest, orderStatus, orderShippedDate, orderDeliveredDate)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+
+    db.pool.query(insertQuery,
+                [dogID, addressID, orderDate, orderGiftNote || null, orderCustomRequest || null, orderStatus, orderShippedDate || null, orderDeliveredDate || null],
+                (error, results) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to add order"});
+        // Handle API response
+        } else {
+            res.status(201).json({message: "Order added successfully"});
+        }
+    });
+});
+
+// PUT - ORDERS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.put('/api/orders/update/:orderID', (req, res) => {
+    // Capture and return incoming data from request params and request body to be used in SQL query
+    const {orderID} = req.params;
+    const {
+        addressID,
+        orderGiftNote, orderCustomRequest,
+        orderStatus, orderShippedDate, orderDeliveredDate,
+    } = req.body;
+    console.log(orderID)
+    console.log(req.body)
+
+    // Define SQL query
+    const updateQuery = `
+        UPDATE Orders 
+        SET addressID = ?, 
+            orderGiftNote = ?, orderCustomRequest = ?, 
+            orderStatus = ?, orderShippedDate = ?, orderDeliveredDate = ? 
+        WHERE orderID = ?`;
+
+    // Execute SQL query
+    db.pool.query(updateQuery,
+                [addressID, orderGiftNote || null, orderCustomRequest || null, orderStatus, orderShippedDate || null, orderDeliveredDate || null, orderID],
+                (error) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to update order"});
+        // Handle API response
+        } else {
+            res.status(200).json({message: "Order updated successfully"}); 
+        }
+    });
+});
+
+// DELETE - ORDERS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.delete('/api/orders/delete/:orderID', (req, res) => {
+    // Capture and return incoming data from request params and request body to be used in SQL query
+    const {orderID} = req.params;
+    console.log(orderID)
+
+    // Define SQL query
+    const deleteQuery = `DELETE FROM Orders WHERE orderID = ?`;
+
+    // Execute SQL query
+    db.pool.query(deleteQuery, [orderID], (error, results) => {
+        //Handle API error
+        if (error) {
+            res.status(500).send("Failed to delete order");
+        // Handle API response
+        } else {
+            res.sendStatus(204); 
+        }
+    });
+});
+
+
+
+// GET - ORDER_PRODUCTS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.get('/api/orders/:orderID/products', (req, res) => {
+    // Capture and return incoming data from request params to be used in SQL query
+    const {orderID} = req.params;
+    console.log(orderID)
+
+    // Define SQL query
+    const selectQuery = `
+        SELECT 
+            op.orderProductID, 
+            op.orderID, op.productID, 
+            p.productName AS productName,
+            op.orderProductRequest, op.orderProductSalePrice
+        FROM Order_Products op
+        JOIN Products p ON op.productID = p.productID
+        WHERE op.orderID = ?`;
+
+    // Execute SQL query
+    db.pool.query(selectQuery, [orderID], (error, results) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({ error: "Failed to fetch order products" });
+        // Handle API response
+        } else {
+            res.json(results);
+        }
+    });
+});
+
+// GET - ORDER_PRODUCTS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.get('/api/order-products/:orderProductID', (req, res) => {
+    // Capture and return incoming data from request params to be used in SQL query
+    const {orderProductID} = req.params;
+    console.log(req.params)
+
+    // Define SQL query
+    const selectQuery = `
+        SELECT 
+            op.orderProductID, 
+            op.orderID, op.productID, 
+            op.orderProductRequest, op.orderProductSalePrice
+        FROM Order_Products op
+        WHERE op.orderProductID = ?`;
+
+    db.pool.query(selectQuery, [orderProductID], (error, results) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to fetch order product"});
+        // Handle API response: NOT FOUND case
+        } else if (results.length === 0) {
+            return res.status(404).json({error: "Order product not found"});
+        // Handle API response: FOUND case
+        } else {
+            res.json(results[0]);
+        }
+    });
+});
+
+// POST - ORDER_PRODUCTS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.post('/api/order-products/add', (req, res) => {
+    // Capture and return incoming data from request body to be used in SQL query
+    const {orderID, productID, orderProductRequest, orderProductSalePrice} = req.body;
+    console.log(req.body)
+
+    // Define SQL query
+    const insertQuery = `
+        INSERT INTO Order_Products (orderID, productID, orderProductRequest, orderProductSalePrice)
+        VALUES (?, ?, ?, ?)`;
+
+    // Execute SQL query
+    db.pool.query(insertQuery, [orderID, productID, orderProductRequest || null, orderProductSalePrice], (error, results) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to add order product"});
+        // Handle API response
+        } else {
+            res.status(201).json({message: "Order product added successfully"});
+        }
+    });
+});
+
+// PUT - ORDER_PRODUCTS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.put('/api/order-products/update/:orderProductID', (req, res) => {
+    // Capture and return incoming data from request params and request body to be used in SQL query
+    const {orderProductID} = req.params;
+    const {productID, orderProductRequest, orderProductSalePrice} = req.body;
+    console.log(req.params)
+    console.log(req.body)
+
+    // Define SQL query
+    const updateQuery = `
+        UPDATE Order_Products 
+        SET productID = ?, 
+            orderProductRequest = ?, 
+            orderProductSalePrice = ? 
+        WHERE orderProductID = ?`;
+
+    // Execute SQL query
+    db.pool.query(updateQuery, [productID, orderProductRequest || null, orderProductSalePrice, orderProductID], (error) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to update order product"});
+        // Handle API response
+        } else {
+            res.status(200).json({message: "Order product updated successfully"});
+        }
+    });
+});
+
+// DELETE - ORDER_PRODUCTS (HANDLING METHOD: FETCH API, EXTRACTION: DESTRUCTURED, QUERIES: PARAMETERIZED)
+app.delete('/api/order-products/delete/:orderProductID', (req, res) => {
+    // Capture and return incoming data from request params to be used in SQL query
+    const {orderProductID} = req.params;
+    console.log(orderProductID)
+
+    // Define SQL query
+    const deleteQuery = `
+        DELETE FROM Order_Products WHERE orderProductID = ?`;
+
+    db.pool.query(deleteQuery, [orderProductID], (error) => {
+        // Handle API error
+        if (error) {
+            return res.status(500).json({error: "Failed to delete order product"});
+        // Handle API response
+        } else {
+            res.sendStatus(204);
+        }
+    });
+});
+
+/*
+    API ROUTES - DATA FOR DYNAMIC DROPDOWNS (FETCH API)
+*/
+
+// ADDRESSES DROPDOWN (used in Orders forms)
 app.get('/api/drop/addresses', (req, res) => {
     const query= `
         SELECT 
@@ -197,7 +1317,24 @@ app.get('/api/drop/addresses', (req, res) => {
     });
 });
 
-// Dogs for Orders forms
+// CUSTOMERS DROPDOWN (used in Dogs & Addresses forms)
+app.get('/api/drop/customers', (req, res) => {
+    const query = `
+        SELECT 
+            customerID AS id, 
+            CONCAT(customerID, ': ', customerName) 
+            AS name 
+        FROM Customers`;
+
+    db.pool.query(query, (error, results) => {
+        if (error) {
+            return res.status(500).json({ error:"Failed to fetch customer"});
+        }
+        res.json(results);
+    });
+});
+
+// DOGS DROPDOWN (used in Orders forms)
 app.get('/api/drop/dogs', (req, res) => {
     const query = `
         SELECT 
@@ -208,13 +1345,30 @@ app.get('/api/drop/dogs', (req, res) => {
 
     db.pool.query(query, (error, results) => {
         if (error) {
-            return res.status(500).json({ error:"Failed to fetch dogs"});
+            return res.status(500).json({error:"Failed to fetch dogs"});
         }
         res.json(results);
     });
 });
 
-// Products for Order_Products forms
+// BREEDS DROPDOWN (used in Dogs forms)
+app.get('/api/drop/breeds', (req, res) => {
+    const query = `
+        SELECT 
+            breedID AS id, 
+            CONCAT(breedID, ': ', breedName) 
+            AS name 
+        FROM Breeds`;
+
+    db.pool.query(query, (error, results) => {
+        if (error) {
+            return res.status(500).json({error:"Failed to fetch breeds"});
+        }
+        res.json(results);
+    });
+});
+
+// PRODUCTS DROPDOWN (used in Order_Products forms)
 app.get('/api/drop/products', (req, res) => {
     const query = `
         SELECT 
@@ -228,575 +1382,8 @@ app.get('/api/drop/products', (req, res) => {
             return res.status(500).json({error: "Failed to fetch products"}); 
         }
         res.json(results); 
-    })});
-  
-/*
-    API ROUTES - Products (JSON)
-*/
-
-// GET - Products
-app.get('/api/products', (req, res) => {
-    const query = `
-        SELECT 
-            productID, 
-            productName, 
-            productDescription, 
-            productType, 
-            productColorBase, 
-            productColorStyle, 
-            productLiningMaterial, 
-            productFillingMaterial, 
-            productBasePrice
-        FROM Products`;
-
-    db.pool.query(query, (error, results) => {
-        if (error) {
-            return res.status(500).json({error: "Failed to fetch products"}); 
-        }
-        res.json(results); 
     });
 });
-
-// GET - product by ID (Products)
-app.get('/api/products/:productID', (req, res) => {
-    const {productID} = req.params;
-    const query = `
-        SELECT * 
-        FROM Products
-        WHERE productID = ?`;
-
-    db.pool.query(query, [productID], (error, results) => {
-        if (error) {
-            return res.status(500).json({error: "Failed to fetch product"});
-        } else if (results.length === 0) {
-            return res.status(404).json({ error: "Product not found" });
-        } else {
-            res.json(results[0]);
-        }
-    });
-});
-
-// POST - new products (Products)
-app.post('/api/products/add', (req, res) => {          
-    const {
-        productName, productDescription, productType, 
-        productColorBase, productColorStyle, 
-        productLiningMaterial, productFillingMaterial, productBasePrice
-    } = req.body;
-
-    const query = `
-        INSERT INTO Products (productName, productDescription, productType, productColorBase, productColorStyle, productLiningMaterial, productFillingMaterial, productBasePrice)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-
-    db.pool.query(query,
-                [productName, productDescription, productType, productColorBase, productColorStyle, productLiningMaterial, productFillingMaterial || null, productBasePrice],
-                (error, results) => {
-        if (error) {
-            return res.status(500).json({error: "Failed to add product"});
-        }
-        res.status(201).json({message: "Product added successfully"});
-        }
-    );
-});
-
-// PUT - product by ID (Products)
-app.put('/api/products/update/:productID', (req, res) => {       
-    const {productID} = req.params;
-    const {
-        productName, productDescription, productType, 
-        productColorBase, productColorStyle, 
-        productLiningMaterial, productFillingMaterial, productBasePrice
-    } = req.body;
-
-    console.log('Update Request for Product:', productID);
-    console.log('Update Data:', req.body);
-
-    const query = `
-        UPDATE Products
-        SET productName = ?, 
-            productDescription = ?, 
-            productType = ?, 
-            productColorBase = ?, 
-            productColorStyle = ?, 
-            productLiningMaterial = ?, 
-            productFillingMaterial = ?, 
-            productBasePrice = ?
-        WHERE productID = ?;`;
-
-    db.pool.query(query,
-                [productName, productDescription, productType, productColorBase, productColorStyle, productLiningMaterial, productFillingMaterial || null, productBasePrice, productID],
-                (error) => {
-        if (error) {
-            return res.status(500).json({error: "Failed to update product"});
-        }
-        res.status(200).json({ message: "Product updated successfully" })})}); 
-
-// DELETE - product by ID (Products)
-app.delete('/api/products/delete/:productID', (req, res) => {
-    const {productID} = req.params;
-
-    console.log('Delete Request for Product ID:', productID);
-
-    const query = `DELETE FROM Products WHERE productID = ?`;
-
-    db.pool.query(query, [productID], (error, results) => {
-        if (error) {
-            console.error("Error deleting product:", error); 
-            return res.status(500).json({error: "Failed to delete product"});
-        } else if (results.affectedRows === 0) {
-            console.warn("Product not found:", productID); // Debugging log
-            return res.status(404).json({error: "Product not found"});
-        } else {
-            res.status(200).json({message: "Product deleted successfully"});
-        }
-    });
-});
-
-/*
-    API ROUTES - Orders (JSON)
-*/
-
-// GET - Orders
-app.get('/api/orders', (req, res) => {
-    const query = `
-        SELECT 
-            o.orderID,
-            c.customerID,
-            d.dogID,
-            a.addressID,
-            c.customerName,
-            d.dogName,
-            o.orderDate,
-            o.orderGiftNote,
-            o.orderCustomRequest,
-            o.orderStatus,
-            o.orderShippedDate,
-            o.orderDeliveredDate
-        FROM Orders o
-        LEFT JOIN Dogs d ON o.dogID = d.dogID
-        LEFT JOIN Customers c ON d.customerID = c.customerID
-        LEFT JOIN Addresses a ON o.addressID = a.addressID;`;
-    
-    db.pool.query(query, (error, results) => {
-        if (error) {
-            return res.status(500).json({error: "Failed to fetch orders"}); 
-        }
-        res.json(results); 
-    });
-});
-
-// GET - order by ID (Orders)
-app.get('/api/orders/:orderID', (req, res) => {
-    const {orderID} = req.params;
-    const query = `
-        SELECT * 
-        FROM Orders 
-        WHERE orderID = ?`;
-
-    db.pool.query(query, [orderID], (error, results) => {
-        if (error) {
-            return res.status(500).json({error: "Failed to fetch order"});
-        } else if (results.length === 0) {
-            return res.status(404).json({ error: "Order not found" });
-        } else {
-            res.json(results[0]);
-        }
-    });
-});
-
-// POST - new order (Orders)
-app.post('/api/orders/add', (req, res) => {                
-    const {
-        dogID, addressID, 
-        orderDate, orderGiftNote, orderCustomRequest, 
-        orderStatus, orderShippedDate, orderDeliveredDate,
-    } = req.body;
-
-    const query = `
-        INSERT INTO Orders (dogID, addressID, orderDate, orderGiftNote, orderCustomRequest, orderStatus, orderShippedDate, orderDeliveredDate)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-
-    db.pool.query(query,
-                [dogID, addressID, orderDate, orderGiftNote || null, orderCustomRequest || null, orderStatus, orderShippedDate || null, orderDeliveredDate || null],
-                (error, results) => {
-        if (error) {
-            return res.status(500).json({error: "Failed to add order"});
-        }
-        res.status(201).json({message: "Order added successfully"});
-        }
-    );
-});
-
-// PUT - order by ID (Orders)
-app.put('/api/orders/update/:orderID', (req, res) => {
-    const { orderID } = req.params;
-    const {
-        addressID,
-        orderGiftNote, orderCustomRequest,
-        orderStatus, orderShippedDate, orderDeliveredDate,
-    } = req.body;
-    const query = `
-        UPDATE Orders 
-        SET addressID = ?, 
-            orderGiftNote = ?, orderCustomRequest = ?, 
-            orderStatus = ?, orderShippedDate = ?, orderDeliveredDate = ? 
-        WHERE orderID = ?`;
-
-    db.pool.query(query,
-                [addressID, orderGiftNote || null, orderCustomRequest || null, orderStatus, orderShippedDate || null, orderDeliveredDate || null, orderID],
-                (error) => {
-        if (error) {
-            return res.status(500).json({error: "Failed to update order"});
-        }
-        res.status(200).json({ message: "Order updated successfully" }); 
-        }
-    );
-});
-
-// DELETE - order by ID (Orders)
-app.delete('/api/orders/delete/:orderID', (req, res) => {
-    const {orderID} = req.params;
-    const query = `DELETE FROM Orders WHERE orderID = ?`;
-  
-  // DELETE - order product by ID (Order_Products)
-app.delete('/api/order-products/delete/:orderProductID', (req, res) => {
-    const { orderProductID } = req.params;
-    const query = `
-        DELETE FROM Order_Products WHERE orderProductID = ?`;
-
-    db.pool.query(query, [orderProductID], (error) => {
-        if (error) {
-            return res.status(500).json({ error: "Failed to delete order product" });
-        }
-        res.sendStatus(200);
-    });
-})});
-  
-/*
-    API ROUTES - Order_Products (JSON)
-*/
-
-// GET - Order_Products where orderID = ? (Order_Products)
-app.get('/api/orders/:orderID/products', (req, res) => {
-    const { orderID } = req.params;
-    const query = `
-        SELECT 
-            op.orderProductID, 
-            op.orderID, op.productID, 
-            p.productName AS productName,
-            op.orderProductRequest, op.orderProductSalePrice
-        FROM Order_Products op
-        JOIN Products p ON op.productID = p.productID
-        WHERE op.orderID = ?`;
-
-    db.pool.query(query, [orderID], (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: "Failed to fetch order products" });
-        }
-        res.json(results);
-    });
-});
-
-// GET - order product by ID (Order_Products)
-app.get('/api/order-products/:orderProductID', (req, res) => {
-    const { orderProductID } = req.params;
-    const query = `
-        SELECT 
-            op.orderProductID, 
-            op.orderID, op.productID, 
-            op.orderProductRequest, op.orderProductSalePrice
-        FROM Order_Products op
-        WHERE op.orderProductID = ?`;
-
-    db.pool.query(query, [orderProductID], (error, results) => {
-        if (error) {
-            return res.status(500).json({error: "Failed to fetch order product"});
-        } else if (results.length === 0) {
-            return res.status(404).json({error: "Order product not found"});
-        } else {
-        res.json(results[0]);
-        }
-    });
-});
-
-// POST - new order product (Order_Products)
-app.post('/api/order-products/add', (req, res) => {
-    const { orderID, productID, orderProductRequest, orderProductSalePrice } = req.body;
-    const query = `
-        INSERT INTO Order_Products (orderID, productID, orderProductRequest, orderProductSalePrice)
-        VALUES (?, ?, ?, ?)`;
-
-    db.pool.query(query, [orderID, productID, orderProductRequest || null, orderProductSalePrice], (error, results) => {
-        if (error) {
-            return res.status(500).json({error: "Failed to add order product"});
-        }
-        res.status(201).json({message: "Order product added successfully"});
-    });
-});
-
-// PUT - order product by ID (Order_Products)
-app.put('/api/order-products/update/:orderProductID', (req, res) => {
-    const { orderProductID } = req.params;
-    const { productID, orderProductRequest, orderProductSalePrice } = req.body;
-    const query = `
-        UPDATE Order_Products 
-        SET productID = ?, 
-            orderProductRequest = ?, 
-            orderProductSalePrice = ? 
-        WHERE orderProductID = ?`;
-
-    db.pool.query(query, [productID, orderProductRequest || null, orderProductSalePrice, orderProductID], (error) => {
-        if (error) {
-            return res.status(500).json({error: "Failed to update order product"});
-        }
-        res.status(200).json({ message: "Order product updated successfully" });
-    });
-});
-
-
-// BREEDS PAGE START
-
-app.get('/breeds', function(req, res)
-{  
-    let selectBreeds = "SELECT * FROM Breeds;";               // Define our query
-
-    db.pool.query(selectBreeds, function(error, rows, fields){    // Execute the query
-
-        res.render('breeds', {data: rows});                  // Render the index.hbs file, and also send the renderer
-    })                
-});  
-
-
-// BREEDS PAGE END
-
-
-
-// ADRESSES PAGE START
-
-app.post('/add-address-ajax', function(req, res) 
-{
-    // Capture the incoming data and parse it back to a JS object
-
-    let data = req.body;
-
-    // Capture NULL values
-    let customerID = parseInt(data.customerID);
-
-    let streetAddress = data.streetAddress;
-
-    let unit = data.unit;
-    if (isNaN(unit))
-        {
-            unit = 'NULL'
-        }
-
-    let city = data.city;
-
-    let state = data.state;
-
-    let postalCode = parseInt(data.postalCode);
-
-    // Create the query and run it on the database
-    query1 = `INSERT INTO Addresses (customerID, streetAddress, unit, city, state, postalCode) VALUES ('${data.customerID}', '${data.streetAddress}', '${data,unit}', '${data.city}', '${data.state}', '${data.postalCode}')`;
-    db.pool.query(query1, function(error, rows, fields){
-
-        // Check to see if there was an error
-        if (error) {
-
-            // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
-            console.log(error)
-            res.sendStatus(400);
-        }
-        else
-        {
-            // If there was no error, perform a SELECT * on bsg_people
-            query2 = `SELECT * FROM Addresses;`;
-            db.pool.query(query2, function(error, rows, fields){
-
-                // If there was an error on the second query, send a 400
-                if (error) {
-                    
-                    // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
-                    console.log(error);
-                    res.sendStatus(400);
-                }
-                // If all went well, send the results of the query back.
-                else
-                {
-                    res.send(rows);
-                }
-            })
-        }
-    })
-});
-
-app.delete('/delete-address-ajax/', function(req,res,next){
-    let data = req.body;
-    let addressID = parseInt(data.id);
-    console.log(data)
-    let deleteAddress = `DELETE FROM Addresses WHERE addressID = ?`;
-    
-        // Run the 1st query
-        db.pool.query(deleteAddress, [addressID], function(error, rows, fields){
-        if (error) {
-            console.log(error);
-            res.sendStatus(400);
-        } else {
-            res.sendStatus(204);
-        }
-    
-    })});
-
-app.put('/put-address-ajax', function(req,res,next){
-    let data = req.body;
-
-    console.log(data)
-
-    let streetAddress = data.streetAddress;
-    let unit = data.unit;
-    let city = data.city;
-    let state = data.state;
-    let postalCode = data.postalCode;
-    let addressID = parseInt(data.addressID);
-    
-    let queryUpdateAddress = `UPDATE Addresses SET streetAddress = ?, unit = ?, city = ?, state = ?, postalCode = ? WHERE Addresses.addressID = ?`;
-    let selectAddress= `SELECT * FROM Addresses WHERE Addresses.addressID = ?`
-    
-        // Run the 1st query
-        db.pool.query(queryUpdateAddress, [streetAddress, unit, city, state, postalCode, addressID], function(error, rows, fields){
-            if (error) {
-
-            // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
-            console.log(error);
-            res.sendStatus(400);
-            }
-
-            // If there was no error, we run our second query and return that data so we can use it to update the people's
-            // table on the front-end
-            else
-            {
-                // Run the second query
-                db.pool.query(selectAddress, [addressID], function(error, rows, fields) {
-
-                    if (error) {
-                        console.log(error);
-                        res.sendStatus(400);
-                    } else {
-                        res.send(rows);
-                    }
-                })
-            }
-})});
-
-// ADDRESSES PAGE END
-
-
-
-// CUSTOMERS PAGE START
-
-app.post('/add-customer-ajax', function(req, res) 
-{
-    // Capture the incoming data and parse it back to a JS object
-    let data = req.body;
-
-    console.log("Data being sent to server:", data);
-
-    // Create the query and run it on the database
-    insertCustomers = `INSERT INTO Customers (customerName, customerEmail, customerPhone) VALUES ('${data.customerName}', '${data.customerEmail}', '${data.customerPhone}')`;
-    db.pool.query(insertCustomers, function(error, rows, fields){
-
-        // Check to see if there was an error
-        if (error) {
-
-            // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
-            console.log(error)
-            res.sendStatus(400);
-        }
-        else
-        {
-            // If there was no error, perform a SELECT * on Customers
-            selectCustomers = `SELECT * FROM Customers;`;
-            db.pool.query(selectCustomers, function(error, rows, fields){
-
-                // If there was an error on the second query, send a 400
-                if (error) {
-
-                    // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
-                    console.log(error);
-                    res.sendStatus(400);
-                }
-                // If all went well, send the results of the query back.
-                else
-                {
-                    res.send(rows);
-                }
-            })
-        }
-    })
-});
-      
-      
-//delete customer
-
-app.delete('/delete-customer-ajax/', function(req,res,next){
-    let data = req.body;
-    let customerID = parseInt(data.id);
-    console.log(data)
-    let deleteCustomer = `DELETE FROM Customers WHERE customerID = ?`;
-    
-    
-            // Run the 1st query
-            db.pool.query(deleteCustomer, [customerID], function(error, rows, fields){
-            if (error) {
-                console.log(error);
-                res.sendStatus(400);
-            } else {
-                res.sendStatus(204);
-            }
-    
-    })});
-
-app.put('/put-customer-ajax', function(req,res,next){
-    let data = req.body;
-
-    console.log(data)
-
-    let customerName = parseInt(data.customerName);
-    let customerEmail = data.customerEmail;
-    let customerPhone = data.customerPhone;
-
-    let queryUpdateCustomer = `UPDATE Customers SET customerEmail = ?, customerPhone = ? WHERE Customers.customerID = ?`;
-    let selectCustomer = `SELECT * FROM Customers WHERE Customers.customerID = ?`
-
-        // Run the 1st query
-        db.pool.query(queryUpdateCustomer, [customerEmail, customerPhone, customerName], function(error, rows, fields){
-            if (error) {
-
-            // Log the error to the terminal so we know what went wrong, and send the visitor an HTTP response 400 indicating it was a bad request.
-            console.log(error);
-            res.sendStatus(400);
-            }
-
-            // If there was no error, we run our second query and return that data so we can use it to update the people's
-            // table on the front-end
-            else
-            {
-                // Run the second query
-                db.pool.query(selectCustomer, [customerName], function(error, rows, fields) {
-
-                    if (error) {
-                        console.log(error);
-                        res.sendStatus(400);
-                    } else {
-                        res.send(rows);
-                    }
-                })
-            }
-})});
-
-// CUSTOMERS PAGE END
 
 /*
     Listener
