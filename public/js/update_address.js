@@ -138,9 +138,8 @@ function updateAddress() {
             document.getElementById('input-city-update').value = '';
             document.getElementById('input-state-update').value = '';
             document.getElementById('input-postalCode-update').value = '';
+            
             closeModal('update-address-modal');
-
-            alert('Address updated successfully!');
         } else if (xhttp.readyState === 4) {
             alert('Failed to update address. Please try again.');
             console.error('Error updating address:', xhttp.responseText);
