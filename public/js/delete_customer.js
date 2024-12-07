@@ -25,7 +25,6 @@ function confirmAndDeleteCustomer(customerID) {
         if (xhttp.readyState === 4 && xhttp.status === 204) {
             // Remove the row from the table
             deleteRow(customerID);
-            alert("Customer deleted successfully!");
         } else if (xhttp.readyState === 4) {
             alert("Failed to delete customer. Please try again.");
             console.error("Error deleting customer:", xhttp.responseText);
