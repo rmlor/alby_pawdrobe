@@ -64,10 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (xhttp.readyState == 4 && xhttp.status == 200) {
                 // Add the new data to the table
                 addRowToTable(xhttp.response);
-    
-                // Alert success
-                alert("Customer added successfully!");
-    
+                
                 // Clear the input fields for another transaction
                 inputCustomerName.value = '';
                 inputCustomerEmail.value = '';
