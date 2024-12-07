@@ -115,55 +115,21 @@ function addRowToTable(data) {
     row.setAttribute('data-value', newRow.addressID);
 
     // Create table cells
-    const addressIDCell = document.createElement('td');
-    const customerIDCell = document.createElement('td');
-    const customerNameCell = document.createElement('td');
-    const streetAddressCell = document.createElement('td');
-    const unitCell = document.createElement('td');
-    const cityCell = document.createElement('td');
-    const stateCell = document.createElement('td');
-    const postalCodeCell = document.createElement('td');
-    const actionsCell = document.createElement('td');
+    row.innerHTML = `
+        <td>${newRow.addressID}</td>
+        <td>${newRow.customerID}</td>
+        <td>${newRow.customerName}</td> <!-- This ensures customerName is correctly placed -->
+        <td>${newRow.streetAddress}</td>
+        <td>${newRow.unit || 'N/A'}</td>
+        <td>${newRow.city}</td>
+        <td>${newRow.state}</td>
+        <td>${newRow.postalCode}</td>
+        <td>
+            <button id="update-address-button-${newRow.addressID}" data-address-id="${newRow.addressID}">Update</button>
+            <button id="delete-address-button-${newRow.addressID}" data-address-id="${newRow.addressID}">Delete</button>
+        </td>
+    `;
 
-    // Fill the cells with the correct data
-    addressIDCell.innerText = newRow.addressID;
-    customerIDCell.innerText = newRow.customerID;
-    customerNameCell.innerText = newRow.customerName;
-    streetAddressCell.innerText = newRow.streetAddress;
-    unitCell.innerText = newRow.unit || 'N/A';
-    cityCell.innerText = newRow.city;
-    stateCell.innerText = newRow.state;
-    postalCodeCell.innerText = newRow.postalCode;
-
-    // Create Update and Delete buttons
-    const updateButton = document.createElement('button');
-    updateButton.id = `update-address-button-${newRow.addressID}`;
-    updateButton.dataset.addressId = newRow.addressID;
-    updateButton.innerText = 'Update';
-    updateButton.addEventListener('click', () => openUpdateAddressModal(newRow.addressID));
-
-    const deleteButton = document.createElement('button');
-    deleteButton.id = `delete-address-button-${newRow.addressID}`;
-    deleteButton.dataset.addressId = newRow.addressID;
-    deleteButton.innerText = 'Delete';
-    deleteButton.addEventListener('click', () => confirmAndDeleteAddress(newRow.addressID));
-
-    // Add buttons to the actions cell
-    actionsCell.appendChild(updateButton);
-    actionsCell.appendChild(deleteButton);
-
-    // Append cells to the row
-    row.appendChild(addressIDCell);
-    row.appendChild(customerIDCell);
-    row.appendChild(customerNameCell);
-    row.appendChild(streetAddressCell);
-    row.appendChild(unitCell);
-    row.appendChild(cityCell);
-    row.appendChild(stateCell);
-    row.appendChild(postalCodeCell);
-    row.appendChild(actionsCell);
-
-    // Append row to the table
     currentTable.appendChild(row);
 
     console.log("Row added successfully:", row); // Debugging successful row addition
