@@ -236,22 +236,20 @@ function updateProduct() {
 function deleteProduct(productID) {
     if (confirm("Are you sure you want to delete this product?")) {
         // DELETE route for product by ID
-        fetch(`/api/products/delete/${productID}`, {method: "DELETE"})
-            // Handle API response
+        fetch(`/api/products/delete/${productID}`, { method: "DELETE" })
             .then((response) => {
-                if (!response.ok) {
-                    throw new Error("Failed to delete product: ${response.status} ${response.statusText}");
+                if (response.ok) {
+                    // Refresh product list if deletion is successful
+                    fetchProducts();
+                } else {
+                    // Handle non-2xx responses
+                    console.error("Failed to delete product:", response.status, response.statusText);
+                    alert(`Failed to delete product. Server responded with ${response.status} ${response.statusText}`);
                 }
-                return response.json();
             })
-            // Handle successfully deleted product
-            .then(() => {
-                fetchProducts(); 
-            })
-            // Handle API error
             .catch((error) => {
                 console.error("Error in deleteProduct:", error);
-                alert("Failed to delete the product. Please try again.");
+                alert("An error occurred while trying to delete the product. Please try again.");
             });
     }
 }
