@@ -99,10 +99,8 @@ function updateCustomer() {
             document.getElementById('customerID').value = "";
             document.getElementById('input-customerEmail').value = "";
             document.getElementById('input-customerPhone').value = "";
+            
             closeModal('update-customer-modal');
-
-            alert('Customer updated successfully!');
-
         } else if (xhttp.readyState === 4) {
             alert('Failed to update customer. Please try again.');
             console.error('Error updating customer:', xhttp.responseText);
