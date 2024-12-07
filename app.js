@@ -568,7 +568,7 @@ app.put('/api/dogs/update/:dogID', (req, res) => {
     // Define SQL query
     const updateQuery = `
         UPDATE Dogs
-        SET customerID = ?, dogName =  ?, 
+        SET dogName =  ?, 
             upperNeckGirthIn = ?, lowerNeckGirthIn = ?, chestGirthIn = ?, 
             backLengthIn = ?, heightLengthIn = ?, 
             pawWidthIn = ?, pawLengthIn = ?
@@ -576,7 +576,7 @@ app.put('/api/dogs/update/:dogID', (req, res) => {
 
     // Execute SQL query
     db.pool.query(updateQuery,
-                [customerID, dogName, 
+                [dogName, 
                 upperNeckGirthIn, lowerNeckGirthIn, chestGirthIn, 
                 backLengthIn, heightLengthIn, 
                 pawWidthIn, pawLengthIn, dogID],
@@ -896,7 +896,7 @@ app.get('/api/products', (req, res) => {
             return res.status(500).json({error: "Failed to fetch products"}); 
         // Handle API response
         } else {
-            es.json(results); 
+            res.json(results); 
         }
     });
 });
