@@ -25,7 +25,6 @@ function confirmAndDeleteAddress(addressID) {
         if (xhttp.readyState === 4 && xhttp.status === 204) {
             // Remove the row from the table
             deleteAddressRow(addressID);
-            alert("Address deleted successfully!");
         } else if (xhttp.readyState === 4) {
             alert("Failed to delete address. Please try again.");
             console.error("Error deleting address:", xhttp.responseText);
