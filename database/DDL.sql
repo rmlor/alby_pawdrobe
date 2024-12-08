@@ -244,7 +244,7 @@ INSERT INTO Orders (dogID, addressID, orderDate, orderGiftNote, orderCustomReque
 VALUES
 	(1, 1, '2024-10-01', 'Happy Birthday Alby <3', 'gift_wrap', 'delivered', '2024-10-05', '2024-10-06'),		-- order for Alby
     (2, 4, '2024-10-02', NULL, 'rush_order', 'delivered', '2024-10-03', '2024-10-04'),					        -- order for Sadie
-    (3, 2, '2024-10-05', NULL, 'sustainable_pack', 'delayed', 2024-10-09, NULL),					            -- order for Mochi
+    (3, 2, '2024-10-05', NULL, 'sustainable_pack', 'delayed', '2024-10-09', NULL),					            -- order for Mochi
     (4, 3, '2024-10-08', 'Enjoy the cozy PJs, Bean!', 'gift_wrap', 'preparing', NULL, NULL);				    -- order for Bean
 
 -- insert sample data into Order_Products table
